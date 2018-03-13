@@ -1,0 +1,45 @@
+{
+  "name": "Stanford Letter Project",
+
+  "namespace": "Stanford\\LetterProject",
+
+  "authors": [
+    {
+      "name": "Jae Lee",
+      "email": "jael@stanford.edu",
+      "institution": "Stanford University"
+    }
+  ],
+
+  "permissions": [
+    "hook_save_record",
+    "hook_survey_complete"
+  ],
+
+  "description": "Reconciliation of proxy letters for the Stanford Letter Project",
+
+  "links": {
+    "project": [
+      {
+        "name": "Proxy Letter Reconciliation",
+        "icon": "gear",
+        "url": "ProxyLetterReconciliation.php?NOAUTH"
+      },
+      {
+        "name": "LetterProject Config",
+        "icon": "gear",
+        "url": "config.php"
+      }
+    ]
+  },
+
+  "no-auth-pages": [
+    "ProxyLetterReconciliation"
+  ],
+
+  "system-settings": [
+  ],
+
+  "project-settings": [
+  ]
+}
