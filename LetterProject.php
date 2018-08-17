@@ -26,14 +26,14 @@ class LetterProject extends \ExternalModules\AbstractExternalModule {
     }
 
     function hook_survey_complete($project_id, $record = NULL, $instrument, $event_id, $group_id, $survey_hash, $response_id, $repeat_instance) {
-//        self::debug("Starting Hook Survey Complete", $instrument);
+//        $this->emDebug("Starting Hook Survey Complete", $instrument);
 //        $this->setHash($project_id, $record, $instrument);
 //
 //        exit();
     }
 
     function hook_save_record($project_id, $record = NULL, $instrument, $event_id, $group_id = NULL, $survey_hash = NULL, $response_id = NULL, $repeat_instance = 1) {
-        self::debug("Starting Save Record", $instrument);
+        $this->emDebug("Starting Save Record", $instrument);
         $this->setHash($project_id, $record, $instrument);
     }
 
@@ -58,53 +58,53 @@ class LetterProject extends \ExternalModules\AbstractExternalModule {
 
             $hash = isset($result[LetterProject::$config['hash']]) ? $result[LetterProject::$config['hash']] : '';
             $hash_url = isset($result[LetterProject::$config['hash_url']]) ? $result[LetterProject::$config['hash_url']] : '';
-            self::debug($hash,"Current Hash");
-            self::debug($hash_url,"Current Hash Url");
+            $this->emDebug($hash,"Current Hash");
+            $this->emDebug($hash_url,"Current Hash Url");
             if (empty($hash)) {
                 // Generate a unique hash for this project
                 $new_hash = generateRandomHash(8, false, TRUE, false);
                 $api_url  = $this->getUrl('ProxyLetterReconciliation.php', true, true);
                 $new_hash_url = $api_url . "&e=" . $new_hash;
-                self::debug($new_hash_url,"New Hash ($i)");
+                $this->emDebug($new_hash_url,"New Hash ()");
 
                 // Save it to the record (both as hash and hash_url for piping)
                 $result[LetterProject::$config['hash']] = $new_hash;
                 $result[LetterProject::$config['hash_url']] = $new_hash_url;
                 $response = REDCap::saveData('json', json_encode(array($result)));
-                self::debug($record ,": Set unique Hash Url to $new_hash_url with result " . json_encode($response));
+                $this->emDebug($record ,": Set unique Hash Url to $new_hash_url with result " . json_encode($response));
             } else {
-                self::debug($hash, $record. " has an existing hash url" );
+                $this->emDebug($hash, $record. " has an existing hash url" );
             }
         } else {
-            self::debug("No Match","DEBUG");
+            $this->emDebug("No Match","DEBUG");
         }
     }
 
     public static function getResponseData($id, $select=null, $event=null ) {
- //       self::log($id, "ID");
-//        self::log($event, "EVENT");
+ //       $this->emLog($id, "ID");
+//        $this->emLog($event, "EVENT");
         // get  responses for this ID and event
         $q = REDCap::getData('array', $id, $select, $event);
        //$q = REDCap::getData('array', $id);
 
         //$results = json_decode($q, true);
 
-        //self::log($q, "RESULT");
+        //$this->emLog($q, "RESULT");
         if (count($q) == 0) {
-            self::log($q, "Unable to get responses for $id in event $event", "ERROR");
+            $this->emLog($q, "Unable to get responses for $id in event $event", "ERROR");
             return false;
         }
 
-        //self::log($q, "DEBUG", "RESPONSE RESULT");
+        //$this->emLog($q, "DEBUG", "RESPONSE RESULT");
         //$responses =  $results[0];
         return $q;
 
     }
 
     public static function getVerificationData($id) {
-        self::log($id, "Getting verification data ID");
+        $this->emLog($id, "Getting verification data ID");
         $event = LetterProject::$config['first_event'];
-        self::log($event, "EVENT");
+        $this->emLog($event, "EVENT");
 
         $verify_data =
         // get  responses for this ID and event
@@ -113,13 +113,13 @@ class LetterProject extends \ExternalModules\AbstractExternalModule {
 
         //$results = json_decode($q, true);
 
-        //self::log($q, "RESULT");
+        //$this->emLog($q, "RESULT");
         if (count($q) == 0) {
-            self::log($q, "Unable to get responses for $id in event $event", "ERROR");
+            $this->emLog($q, "Unable to get responses for $id in event $event", "ERROR");
             return false;
         }
 
-        //self::log($q, "DEBUG", "RESPONSE RESULT");
+        //$this->emLog($q, "DEBUG", "RESPONSE RESULT");
         //$responses =  $results[0];
         return $q;
 
@@ -138,78 +138,6 @@ class LetterProject extends \ExternalModules\AbstractExternalModule {
         $this->setProjectSetting($this->PREFIX . '-config', $string_config);
     }
 
-    /**
-     * A Logging Function for debugging, etc...
-     * @param string $obj
-     * @param string $type
-     * @param null $detail
-     */
-    public static function log($obj = "Here", $detail = null, $type = "INFO") {
-        self::writeLog($obj, $detail, $type);
-    }
-
-    public static function debug($obj = "Here", $detail = null, $type = "DEBUG") {
-        self::writeLog($obj, $detail, $type);
-    }
-
-    public static function error($obj = "Here", $detail = null, $type = "ERROR") {
-        self::writeLog($obj, $detail, $type);
-        //TODO: BUBBLE UP ERRORS FOR REVIEW!
-    }
-
-    public static function writeLog($obj, $detail, $type) {
-        $plugin_log_file = self::$config['log_file'];
-        //$plugin_log_file = '/tmp/letter_project.log';
-
-        // Get calling file using php backtrace to help label where the log entry is coming from
-        $bt = debug_backtrace();
-        $calling_file = $bt[1]['file'];
-        $calling_line = $bt[1]['line'];
-        $calling_function = $bt[3]['function'];
-        if (empty($calling_function)) $calling_function = $bt[2]['function'];
-        if (empty($calling_function)) $calling_function = $bt[1]['function'];
-        // if (empty($calling_function)) $calling_function = $bt[0]['function'];
-
-        // Convert arrays/objects into string for logging
-        if (is_array($obj)) {
-            $msg = "(array): " . print_r($obj,true);
-        } elseif (is_object($obj)) {
-            $msg = "(object): " . print_r($obj,true);
-        } elseif (is_string($obj) || is_numeric($obj)) {
-            $msg = $obj;
-        } elseif (is_bool($obj)) {
-            $msg = "(boolean): " . ($obj ? "true" : "false");
-        } else {
-            $msg = "(unknown): " . print_r($obj,true);
-        }
-
-        // Prepend prefix
-        if ($detail) $msg = "[$detail] " . $msg;
-
-        // Build log row
-        $output = array(
-            date( 'Y-m-d H:i:s' ),
-            empty($project_id) ? "-" : $project_id,
-            basename($calling_file, '.php'),
-            $calling_line,
-            $calling_function,
-            $type,
-            $msg
-        );
-
-        // Output to plugin log if defined, else use error_log
-        if (!empty($plugin_log_file)) {
-            file_put_contents(
-                $plugin_log_file,
-                implode("\t",$output) . "\n",
-                FILE_APPEND
-            );
-        }
-        if (!file_exists($plugin_log_file)) {
-            // Output to error log
-            error_log(implode("\t",$output));
-        }
-    }
 
     public static function lookupByCode($code) {
         $event = LetterProject::$config['first_event'];
@@ -257,4 +185,28 @@ class LetterProject extends \ExternalModules\AbstractExternalModule {
         }
         return $html;
     }
+
+    /**
+     *
+     * emLogging integration
+     *
+     */
+    function emLog() {
+        $emLogger = \ExternalModules\ExternalModules::getModuleInstance('em_logger');
+        $emLogger->log($this->PREFIX, func_get_args(), "INFO");
+    }
+
+    function emDebug() {
+        // Check if debug enabled
+        if ($this->getSystemSetting('enable-system-debug-logging') || $this->getProjectSetting('enable-project-debug-logging')) {
+            $emLogger = \ExternalModules\ExternalModules::getModuleInstance('em_logger');
+            $emLogger->log($this->PREFIX, func_get_args(), "DEBUG");
+        }
+    }
+
+    function emError() {
+        $emLogger = \ExternalModules\ExternalModules::getModuleInstance('em_logger');
+        $emLogger->log($this->PREFIX, func_get_args(), "ERROR");
+    }
+
 }
