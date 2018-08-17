@@ -33,7 +33,7 @@ class LetterProject extends \ExternalModules\AbstractExternalModule {
     }
 
     function hook_save_record($project_id, $record = NULL, $instrument, $event_id, $group_id = NULL, $survey_hash = NULL, $response_id = NULL, $repeat_instance = 1) {
-        self::debug("Starting Save Record", $instrument);
+        self::sDebug("Starting Save Record", $instrument);
         $this->setHash($project_id, $record, $instrument);
     }
 
@@ -58,25 +58,25 @@ class LetterProject extends \ExternalModules\AbstractExternalModule {
 
             $hash = isset($result[LetterProject::$config['hash']]) ? $result[LetterProject::$config['hash']] : '';
             $hash_url = isset($result[LetterProject::$config['hash_url']]) ? $result[LetterProject::$config['hash_url']] : '';
-            self::debug($hash,"Current Hash");
-            self::debug($hash_url,"Current Hash Url");
+            self::sDebug($hash,"Current Hash");
+            self::sDebug($hash_url,"Current Hash Url");
             if (empty($hash)) {
                 // Generate a unique hash for this project
                 $new_hash = generateRandomHash(8, false, TRUE, false);
                 $api_url  = $this->getUrl('ProxyLetterReconciliation.php', true, true);
                 $new_hash_url = $api_url . "&e=" . $new_hash;
-                self::debug($new_hash_url,"New Hash ($i)");
+                self::sDebug($new_hash_url,"New Hash ($i)");
 
                 // Save it to the record (both as hash and hash_url for piping)
                 $result[LetterProject::$config['hash']] = $new_hash;
                 $result[LetterProject::$config['hash_url']] = $new_hash_url;
                 $response = REDCap::saveData('json', json_encode(array($result)));
-                self::debug($record ,": Set unique Hash Url to $new_hash_url with result " . json_encode($response));
+                self::sDebug($record ,": Set unique Hash Url to $new_hash_url with result " . json_encode($response));
             } else {
-                self::debug($hash, $record. " has an existing hash url" );
+                self::sDebug($hash, $record. " has an existing hash url" );
             }
         } else {
-            self::debug("No Match","DEBUG");
+            self::sDebug("No Match","DEBUG");
         }
     }
 
@@ -91,7 +91,7 @@ class LetterProject extends \ExternalModules\AbstractExternalModule {
 
         //self::log($q, "RESULT");
         if (count($q) == 0) {
-            self::log($q, "Unable to get responses for $id in event $event", "ERROR");
+            self::sLog($q, "Unable to get responses for $id in event $event", "ERROR");
             return false;
         }
 
@@ -102,9 +102,9 @@ class LetterProject extends \ExternalModules\AbstractExternalModule {
     }
 
     public static function getVerificationData($id) {
-        self::log($id, "Getting verification data ID");
+        self::sLog($id, "Getting verification data ID");
         $event = LetterProject::$config['first_event'];
-        self::log($event, "EVENT");
+        self::sLog($event, "EVENT");
 
         $verify_data =
         // get  responses for this ID and event
@@ -115,7 +115,7 @@ class LetterProject extends \ExternalModules\AbstractExternalModule {
 
         //self::log($q, "RESULT");
         if (count($q) == 0) {
-            self::log($q, "Unable to get responses for $id in event $event", "ERROR");
+            self::sLog($q, "Unable to get responses for $id in event $event", "ERROR");
             return false;
         }
 
@@ -144,15 +144,15 @@ class LetterProject extends \ExternalModules\AbstractExternalModule {
      * @param string $type
      * @param null $detail
      */
-    public static function log($obj = "Here", $detail = null, $type = "INFO") {
+    public static function sLog($obj = "Here", $detail = null, $type = "INFO") {
         self::writeLog($obj, $detail, $type);
     }
 
-    public static function debug($obj = "Here", $detail = null, $type = "DEBUG") {
+    public static function sDebug($obj = "Here", $detail = null, $type = "DEBUG") {
         self::writeLog($obj, $detail, $type);
     }
 
-    public static function error($obj = "Here", $detail = null, $type = "ERROR") {
+    public static function sError($obj = "Here", $detail = null, $type = "ERROR") {
         self::writeLog($obj, $detail, $type);
         //TODO: BUBBLE UP ERRORS FOR REVIEW!
     }
