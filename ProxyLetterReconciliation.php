@@ -35,7 +35,7 @@ if (!empty($_POST['action'])) {
         $q = REDCap::saveData('json', json_encode(array($data)), overwrite);
         if (count($q['errors']) > 0) {
             $msg = "Error saving response for ".$data['record_id']." in ".LetterProject::$config['final_event'];
-            LetterProject::log($q, $msg, "ERROR");
+            LetterProject::sLog($q, $msg, "ERROR");
 
             $result = array("result" => "error", "message" => $msg);
         } else {
