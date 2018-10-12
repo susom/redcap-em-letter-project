@@ -24,11 +24,6 @@
         "name": "Proxy Letter Reconciliation",
         "icon": "gear",
         "url": "ProxyLetterReconciliation.php?NOAUTH"
-      },
-      {
-        "name": "LetterProject Config",
-        "icon": "gear",
-        "url": "config.php"
       }
     ]
   },
@@ -52,6 +47,80 @@
       "name": "<b>Enable Debug Logging</b>",
       "required": false,
       "type": "checkbox"
+    },
+    {
+      "key": "project-title",
+      "name": "<b>Project Title</b>",
+      "required": false,
+      "type": "text"
+    },
+    {
+      "key": "project-admin-email",
+      "name": "<b>Project Admin Email</b>",
+      "required": false,
+      "type": "text"
+    },
+    {
+      "key": "project-from-email",
+      "name": "<b>Project From Email</b>",
+      "required": false,
+      "type": "text"
+    },
+    {
+      "key": "starting-survey",
+      "name": "<b>Starting Survey</b>",
+      "required": false,
+      "type": "form-list"
+    },
+    {
+      "key": "letter-survey",
+      "name": "<b>Letter Survey</b>",
+      "required": false,
+      "type": "form-list"
+    },
+    {
+      "key": "hash",
+      "name": "<b>Hash Field</b>",
+      "required": false,
+      "type": "field-list"
+    },
+    {
+      "key": "hash-url",
+      "name": "<b>Hash URL Field</b>",
+      "required": false,
+      "type": "field-list"
+    },
+    {
+      "key": "first-event",
+      "name": "<b>First Event</b>",
+      "required": false,
+      "type": "event-list"
+    },
+    {
+      "key": "final-event",
+      "name": "<b>Final Event</b>",
+      "required": false,
+      "type": "event-list"
+    },
+    {
+      "key": "code-field",
+      "name": "<b>Code lookup field</b>",
+      "required": false,
+      "type": "field-list"
+    },
+    {
+      "key": "questions",
+      "name": "<b>Question fields</b>",
+      "required": false,
+      "type": "field-list",
+      "repeatable": true
+    },
+    {
+      "key": "events",
+      "name": "<b>Events</b>",
+      "required": false,
+      "type": "event-list",
+      "repeatable": true
     }
   ]
 }
