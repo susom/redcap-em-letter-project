@@ -2,6 +2,12 @@
 namespace Stanford\LetterProject;
 /** @var \Stanford\LetterProject\LetterProject $module */
 
+$popover_content = array(
+        'cpr' => 'If a person’s heart stops or if that person stops breathing and the person has not indicated he or she'.
+            ' does not want CPR, health care professionals usually try to revive him or her using CPR. In most cases when'.
+            ' people have a terminal illness this is not successful. (You do not need to have an advance directive to request a do-not-resuscitate order.)'
+);
+
 ?>
 
 <!DOCTYPE html>
@@ -36,6 +42,9 @@ namespace Stanford\LetterProject;
 
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js'></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
     <!-- Add local css and js for module -->
     <link href="<?php print $module->getUrl('css/letter_project.css', false, true) ?>" rel="stylesheet" type="text/css" media="screen,print"/>
@@ -60,6 +69,10 @@ namespace Stanford\LetterProject;
         </div>
     </div>
 
+    <div>
+
+
+
     <div id="box">
         <div class="main">
             <ul class="nav nav-tabs assessment-tabs">
@@ -77,9 +90,48 @@ namespace Stanford\LetterProject;
 
 <script type='text/javascript'>
     $(document).ready(function() {
+
+
+        $('[data-toggle="popover_cpr2"]').popover({
+            placement : 'bottom',
+            trigger : 'hover',
+            html : true,
+            content : '<div class="media"><a href="#" class="pull-left top"><img src="http://localhost/plugins/open/resources/popover_cpr.jpg" style="width:100%" class="media-object" alt="Sample Image"></a><div class="media-body"><h4 class="media-heading">CPR</h4><p> If a person’s heart stops or if that person stops breathing and the person has not indicated he or she does not want CPR, health care professionals usually try to revive him or her using CPR. In most cases when people have a terminal illness this is not successful. (You do not need to have an advance directive to request a do-not-resuscitate order.)</p></div></div>'
+        });
+        $('[data-toggle="popover_cpr3"]').popover({
+            placement : 'bottom',
+            trigger : 'hover',
+            html : true,
+            content : '<div class="media"><a href="#" class="pull-left"><img src="<?php print $module->getUrl("http://localhost/plugins/open/resources/popover_cpr.jpg",false,true) ?>" style="width:100%" class="media-object" alt="Sample Image"></a><div class="media-body"><h4 class="media-heading">CPR</h4><p> If a person’s heart stops or if that person stops breathing and the person has not indicated he or she does not want CPR, health care professionals usually try to revive him or her using CPR. In most cases when people have a terminal illness this is not successful. (You do not need to have an advance directive to request a do-not-resuscitate order.)</p></div></div>'
+        });
+
+        $('[data-toggle="popover_cpr"]').popover({
+            placement : 'bottom',
+            trigger : 'hover',
+            html : true,
+            content : '<div class="media"><a href="#" class="pull-left"></a><div class="media-body"><h4 class="media-heading">CPR</h4><p> If a person’s heart stops or if that person stops breathing and the person has not indicated he or she does not want CPR, health care professionals usually try to revive him or her using CPR. In most cases when people have a terminal illness this is not successful. (You do not need to have an advance directive to request a do-not-resuscitate order.)</p></div></div>'
+        });
+
+
         // Bind submit button
         $('button[name="submit"]').on('click', function() { saveResponse(); });
 
+          $('.btnNext').click(function() {
+              console.log("NEXT!");
+              $('.nav-tabs > .active').next('li').find('a').trigger('click');
+               saveResponse();
+          });
+
+        $('.btnPrevious').click(function() {
+            console.log("PREVIOUS!");
+            $('.nav-tabs > .active').prev('li').find('a').trigger('click');
+            saveResponse();
+        });
+
+        $('.btnSubmit').click(function() {
+            console.log("SUBMITTING!");
+            saveResponse();
+        });
 
 
         function saveResponse(record) {
@@ -92,22 +144,39 @@ namespace Stanford\LetterProject;
                 "q2": $('#q2_final').val(),
                 "q3": $('#q3_final').val(),
                 "q4": $('#q4_final').val(),
-                "q5_1": $('input[name="q5_final_1"]').val(),
-                "q5_2": $('input[name="q5_final_2"]').val(),
-                "q5_3": $('input[name="q5_final_3"]').val(),
-                "q6___1": $('input[name="q6_final_1"]').is(":checked") ? 1 : 0,
-                "q6___2": $('input[name="q6_final_2"]').is(":checked") ? 1 : 0,
-                "q6___3": $('input[name="q6_final_3"]').is(":checked") ? 1 : 0,
-                "q6___4": $('input[name="q6_final_4"]').is(":checked") ? 1 : 0,
-                "q6___5": $('input[name="q6_final_5"]').is(":checked") ? 1 : 0,
-                "q6___99": $('input[name="q6_final_6"]').is(":checked") ? 1 : 0,
-                "q7___1": $('input[name="q7_final_1"]').is(":checked") ? 1 : 0,
-                "q7___2": $('input[name="q7_final_2"]').is(":checked") ? 1 : 0,
-                "q7___3": $('input[name="q7_final_3"]').is(":checked") ? 1 : 0,
-                "q7___4": $('input[name="q7_final_4"]').is(":checked") ? 1 : 0,
-                "q7___5": $('input[name="q7_final_5"]').is(":checked") ? 1 : 0,
-                "q7___99": $('input[name="q7_final_6"]').is(":checked") ? 1 : 0,
-                "q8": $('input[name="q8_final"]:checked').val(),
+                "q5_name_decision_1": $('input[name="q5_final_name_decision_1"]').val(),
+                "q5_name_decision_2": $('input[name="q5_final_name_decision_2"]').val(),
+                "q5_name_decision_3": $('input[name="q5_final_name_decision_3"]').val(),
+                "q5_relationship_decision_1": $('input[name="q5_final_relationship_decision_1"]').val(),
+                "q5_relationship_decision_2": $('input[name="q5_final_relationship_decision_2"]').val(),
+                "q5_relationship_decision_3": $('input[name="q5_final_relationship_decision_3"]').val(),
+                "q5_address_decision_1": $('input[name="q5_final_address_decision_1"]').val(),
+                "q5_address_decision_2": $('input[name="q5_final_address_decision_2"]').val(),
+                "q5_address_decision_3": $('input[name="q5_final_address_decision_3"]').val(),
+                "q5_city_decision_1": $('input[name="q5_final_city_decision_1"]').val(),
+                "q5_city_decision_2": $('input[name="q5_final_city_decision_2"]').val(),
+                "q5_city_decision_3": $('input[name="q5_final_city_decision_3"]').val(),
+                "q5_phone_decision_1": $('input[name="q5_final_phone_decision_1"]').val(),
+                "q5_phone_decision_2": $('input[name="q5_final_phone_decision_2"]').val(),
+                "q5_phone_decision_3": $('input[name="q5_final_phone_decision_3"]').val(),
+                "q6": $('input[name="q6_final"]:checked').val(),
+                "q8___1": $('input[name="q8_final_1"]').is(":checked") ? 1 : 0,
+                "q8___2": $('input[name="q8_final_2"]').is(":checked") ? 1 : 0,
+                "q8___3": $('input[name="q8_final_3"]').is(":checked") ? 1 : 0,
+                "q8___4": $('input[name="q8_final_4"]').is(":checked") ? 1 : 0,
+                "q8___99": $('input[name="q8_final_6"]').is(":checked") ? 1 : 0,
+                "q8___99": $('input[name="q8_final_6"]').is(":checked") ? 1 : 0,
+                "q8_99_other": $('#q8_99_other').val(),
+                "q7_cpr": $('input[name="q7_cpr_final"]:checked').val(),
+                "q7_breathing": $('input[name="q7_breathing_final"]:checked').val(),
+                "q7_dialyses": $('input[name="q7_dialyses_final"]:checked').val(),
+                "q7_transfusions": $('input[name="q7_transfusions_final"]:checked').val(),
+                "q7_food": $('input[name="q7_food_final"]:checked').val(),
+                "q7_cpr_inst": $('#q7_cpr_final').val(),
+                "q7_breathing_inst": $('#q7_breathing_final').val(),
+                "q7_dialyses_inst": $('#q7_dialyses_final').val(),
+                "q7_transfusions_inst": $('#q7_transfusions_final').val(),
+                "q7_food_inst": $('#q7_food_final').val(),
                 "q9": $('input[name="q9_final"]:checked').val(),
                 "q10": $('#q10_final').val()
             };
@@ -143,7 +212,7 @@ namespace Stanford\LetterProject;
                         // An error occurred
                         alert (data.message);
                     } else {
-                        alert ("Your entries has been saved.");
+                        //alert ("Your entries has been saved.");
                     }
                 })
                 .fail(function() {
@@ -167,6 +236,12 @@ namespace Stanford\LetterProject;
         }
     });
 </script>
+
+<style>
+    .nav-tabs {
+        display:none;
+    }
+</style>
 
 
 

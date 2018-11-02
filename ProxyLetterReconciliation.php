@@ -4,6 +4,7 @@ namespace Stanford\LetterProject;
 /** @var \Stanford\LetterProject\LetterProject $module */
 
 use \REDCap as REDCap;
+use Stanford\SurveyDashboard\Participant;
 
 // Start the session
 session_start();
@@ -24,23 +25,25 @@ if (!empty($_POST['action'])) {
         //persist current set of responses
 
 
+        $event_id = $module->getProjectSetting('final-event');
+        $event_name = REDCap::getEventNames(true,false, $event_id);
 
         $data = array(
             //REDCap::getRecordIdField() => $_POST['record_id'],
             //'redcap_event_name' => LetterProject::$config['final_event']
-            'redcap_event_name' => $module->getProjectSetting('final-event')
+            'redcap_event_name' =>$event_name
         );
 
         $data = array_merge($data, $_POST);
         unset($data['action']);
 
-        //LetterProject::log($data, "DATA from12REQUEST");
+        $module->emDEbug($data, "DATA from12REQUEST");
 
         //overwrite to unselect the checkbox selections
         $q = REDCap::saveData('json', json_encode(array($data)), overwrite);
         if (count($q['errors']) > 0) {
             $msg = "Error saving response for ".$data['record_id']." in ". $module->getProjectSetting('final-event');
-            $module->emError($q, $msg, "ERROR");
+            $module->emError($data, $q, $msg, "ERROR");
 
             $result = array("result" => "error", "message" => $msg);
         } else {
@@ -124,11 +127,13 @@ function organizeResponses($record) {
 
     //getData('array', $record) return
     $responses = $module->getResponseData($record);
-    $module->emLog($responses, "RESPONSES");
+    //$module->emLog($responses, "RESPONSES");
     $responses = $responses[$record];
 
     $first_event = $module->getProjectSetting('first-event');
     $last_event = $module->getProjectSetting('final-event');
+    $questions = $module->getProjectSetting('questions');
+
     $reorganized = array();
 
 
@@ -146,16 +151,22 @@ function organizeResponses($record) {
     $event_array[\REDCap::getEventNames(true, false, $last_event)] = $last_event;
     $module->emLog($event_array, "EVENT ARRAY");
 
-    for ($i = 1; $i <= 10; $i++) {
-        $question = 'q'.$i;
-        $prefix = 'q';
+    //iterate over the question list from the config
+    foreach ($questions as $num => $question) {
+
+        $re = '/^(?<prefix>q\d*)_(?<part1>\w*)_*(?<part2>\w*)/m';
+        preg_match_all($re, $question, $matches, PREG_SET_ORDER, 0);
+
+        $prefix = $matches[0]['prefix'];
+        $part1 =  $matches[0]['part1'];
+        $part2 =  $matches[0]['part2'];
 
         foreach ($event_array as $event_name => $event_id) {
             //original and final arm have question prepended with 'q': i.e. q1, q2
             //proxy forms has it prepended with 'p_q': i.e. p_q1, p_q2, etc
             //$prefix = (($event_name == 'original_arm_1') || ($event_name == 'final_arm_1')) ? 'q' : 'p_q';
 
-            if ($i == 2) {
+            if ($question == 'q2') {
                 //Question 2 is actually 4 questions that should be displayed together
                 $prefix = $question.'_milestone';
                 $reorganized[$question][$event_name] = array($responses[$event_id][$prefix . '_1'],
@@ -163,27 +174,30 @@ function organizeResponses($record) {
                     $responses[$event_id][$prefix . '_3'],
                     $responses[$event_id][$prefix . '_4'],);
 
-
-            } elseif ($i == 5) {
-                //Question 5 is actually multiple questions that should be displayed together
-                $prefix = $question.'_name_decision';
-
-                $reorganized[$question][$event_name] = array($responses[$event_id][$prefix . '_1'],
-                    $responses[$event_id][$prefix .'_2'],
-                    $responses[$event_id][$prefix . '_3']);
-
-            } elseif ($i == 7) {
+            } elseif ($question == 'q5') {
                 //Question 5 is actually multiple questions that should be displayed together
 
-                $reorganized[$question][$event_name] = array($responses[$event_id]['cpr'],
-                    $responses[$event_id]['int_box1']);
+                $q_types = array('name_decision', 'relationship_decision', 'address_decision', 'city_decision', 'phone_decision');
 
+                $decision_maker_array = array();
+                for ($j=1; $j<4; $j++) {
+                    foreach ($q_types as $k => $v) {
+                        $prefix = $question . '_' . $v;
+                        $decision_maker_array[$j][$v] = $responses[$event_id][$prefix . '_' . $j];
+                    }
+                }
+                $reorganized[$question][$event_name] = $decision_maker_array;
+            } elseif ($prefix == 'q7') {
+                $reorganized[$question][$event_name]  = array('part1' => $responses[$event_id][$prefix . '_'. $part1],
+                     'part2' => $responses[$event_id][$prefix . '_' . $part1 . '_inst']);
             } else {
-                $reorganized[$question][$event_name] = $responses[$event_id][$prefix . $i];
+                $reorganized[$question][$event_name] = $responses[$event_id][$question];
             }
+
         }
     }
-    $module->emLog($reorganized, "REORGANIZED");
+
+    //$module->emLog($reorganized, "REORGANIZED");
 
     return $reorganized;
 }
@@ -224,8 +238,10 @@ function renderTabDivs($record) {
                     <!--p>Home</p-->
                     <div class=\"jumbotron text-center\">
                     <div id='home_line_chart'>this is the home page. Perhaps some instructions here?</div>
-                    </div>
-                </div>";
+                    </div>";
+    $divs[] = renderNavButtons(false, true, false);
+    $divs[] .="</div>";
+
 
     foreach ($questions as $num => $question_num ) {
         $meta_label = $metadata[$question_num]['element_label'];
@@ -291,7 +307,7 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
             //Q2 is an odd ball case where there is 4 text boxes after the descriptive
             //let's just check just in case more get added
             if ($question_num == "q2") {
-                $module->emLog($response, "RESPONSE FOR $proxy_num");
+                //$module->emLog($response, "RESPONSE FOR $proxy_num");
 
                 //put each field in a separate text field
                 $i=1;
@@ -305,14 +321,80 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
             //Q5 is an odd ball case where there is 5 text boxes after the descriptive
             //let's just check just in case more get added
             if ($question_num == "q5") {
-                $module->emLog($response, "RESPONSE FOR $proxy_num");
+                //$module->emLog($response, "RESPONSE FOR $proxy_num");
 
-                //put each field in a separate text field
-                $i=1;
-                foreach ($response as $proxy_name) {
+                if ($proxy_num == 'final') {
+                    //put each field in a separate text field
+                    $i=1;
+                        //$q .= "<p>Decision Maker #$proxy_name</p>";
+                        //$q .= "<div class=\"form-control\">";
+                        ///$q .= "Name: <input name=" . $q_label . "_" . $i . " $readonly value=\"".$detail['name_decision']."\" class=\"form-check-input\" type=\"text\"" . "/>";
+                        //$q .= "Relationship: <input name=" . $q_label . "_" . $i . " $readonly value=\"".$detail['relationship_decision']."\" class=\"form-check-input\" type=\"text\"" . "/>";
+                        //$q .= "</div>";
+
+
                     $q .= "<div class=\"form-control\">";
-                    $q .= "$i.  <input name=" . $q_label . "_" . $i . " $readonly value=\"$proxy_name\" class=\"form-check-input\" type=\"text\"" . "/></div>";
-                    $i++;
+                    $q .= '<div class="col-md-2">';
+                    $q .= '<h5>Decision Maker</h5>';
+                    $q .= '<h4>#1</h4>';
+                    $q .= '<h4>#2</h4>';
+                    $q .= '<h4>#3</h4>';
+                    $q .= '</div>';
+
+                    $q .= '<div class="col-md-2">';
+                    $q .= '<label class="control-label" for="date">Name</label>';
+                    $q .= '<input class="form-control form-check-input" id="'.$q_label.'_name_decision_1'.'" name="'.$q_label.'_name_decision_1'.'"  value="'.$response[1]['name_decision'].'" type="text">';
+                    $q .= '<input class="form-control form-check-input" id="'.$q_label.'_name_decision_2'.'" name="'.$q_label.'_name_decision_2'.'"  value="'.$response[2]['name_decision'].'" type="text">';
+                    $q .= '<input class="form-control form-check-input" id="'.$q_label.'_name_decision_3'.'" name="'.$q_label.'_name_decision_3'.'"  value="'.$response[3]['name_decision'].'" type="text">';
+                    $q .= '</div>';
+
+
+                    $q .= '<div class="col-md-2">';
+                    $q .= '<label class="control-label" for="date">Relationship</label>';
+                    $q .= '<input class="form-control form-check-input" id="'.$q_label.'_relationship_decision_1'.'" name="'.$q_label.'_relationship_decision_1'.'"  value="'.$response[1]['relationship_decision'].'" type="text">';
+                    $q .= '<input class="form-control form-check-input" id="'.$q_label.'_relationship_decision_2'.'" name="'.$q_label.'_relationship_decision_2'.'"  value="'.$response[2]['relationship_decision'].'" type="text">';
+                    $q .= '<input class="form-control form-check-input" id="'.$q_label.'_relationship_decision_3'.'" name="'.$q_label.'_relationship_decision_3'.'"  value="'.$response[3]['relationship_decision'].'" type="text">';
+                    $q .= '</div>';
+
+                    $q .= '<div class="col-md-2">';
+                    $q .= '<label class="control-label" for="date">Address</label>';
+                    $q .= '<input class="form-control form-check-input" id="'.$q_label.'_address_decision_1'.'" name="'.$q_label.'_address_decision_1'.'"  value="'.$response[1]['address_decision'].'" type="text">';
+                    $q .= '<input class="form-control form-check-input" id="'.$q_label.'_address_decision_2'.'" name="'.$q_label.'_address_decision_2'.'"  value="'.$response[2]['address_decision'].'" type="text">';
+                    $q .= '<input class="form-control form-check-input" id="'.$q_label.'_address_decision_3'.'" name="'.$q_label.'_address_decision_3'.'"  value="'.$response[3]['address_decision'].'" type="text">';
+                    $q .= '</div>';
+
+
+                    $q .= '<div class="col-md-2">';
+                    $q .= '<label class="control-label" for="date">City, State, Zip Code</label>';
+                    $q .= '<input class="form-control form-check-input" id="'.$q_label.'_city_decision_1'.'" name="'.$q_label.'_city_decision_1'.'"  value="'.$response[1]['city_decision'].'" type="text">';
+                    $q .= '<input class="form-control form-check-input" id="'.$q_label.'_city_decision_2'.'" name="'.$q_label.'_city_decision_2'.'"  value="'.$response[2]['city_decision'].'" type="text">';
+                    $q .= '<input class="form-control form-check-input" id="'.$q_label.'_city_decision_3'.'" name="'.$q_label.'_city_decision_3'.'"  value="'.$response[3]['city_decision'].'" type="text">';
+                    $q .= '</div>';
+
+
+                    $q .= '<div class="col-md-2">';
+                    $q .= '<label class="control-label" for="date">Phone Numbers</label>';
+                    $q .= '<input class="form-control form-check-input" id="'.$q_label.'_phone_decision_1'.'" name="'.$q_label.'_phone_decision_1'.'"  value="'.$response[1]['phone_decision'].'" type="text">';
+                    $q .= '<input class="form-control form-check-input" id="'.$q_label.'_phone_decision_2'.'" name="'.$q_label.'_phone_decision_2'.'"  value="'.$response[2]['phone_decision'].'" type="text">';
+                    $q .= '<input class="form-control form-check-input" id="'.$q_label.'_phone_decision_3'.'" name="'.$q_label.'_phone_decision_3'.'"  value="'.$response[3]['phone_decision'].'" type="text">';
+                    $q .= '</div>';
+
+                    $q .= '</div>';
+                    $q .= '<div></div>';
+
+
+                } else {
+                    $i=1;
+                    foreach ($response as $proxy_name=>$detail) {
+                        $q .= '  <div class="border row">';
+                        $q .=  '<div class=" border col-xs-2 col-sm-2 col-lg-2" >'. $i. ': '. $detail['name_decision'].'</div>';
+                        $q .= ' <div class="col-xs-2 col-sm-2 col-lg-2" >'. $detail['relationship_decision'].'</div>';
+                        $q .= ' <div class="col-xs-4 col-sm-4 col-lg-4" > '. $detail['address_decision'].'</div>';
+                        $q .= '<div class="col-xs-2 col-sm-2 col-lg-2" > '. $detail['city_decision'].'</div>';
+                        $q .= ' <div class="col-xs-2 col-sm-2 col-lg-2" > '. $detail['phone_decision'].'</div>';
+                        $q .= ' </div>';
+                        $i++;
+                    }
                 }
             }
 
@@ -346,26 +428,24 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
         case "radio":
             //handle the radio formats
             //get the choice enumeration from the metadata
+
+
             $coded = getFieldChoiceList($question_num);
+            //$module->emDebug("==========================question num: $question_num", $coded, $q_label, $response);
 
-            /**
-             *
-            <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-primary">
-            <input type="radio" name="options" id="option1"> Option 1
-            </label>
-            <label class="btn btn-primary">
-            <input type="radio" name="options" id="option2"> Option 2
-            </label>
-            <label class="btn btn-primary">
-            <input type="radio" name="options" id="option3"> Option 3
-            </label>
-            </div>
-             */
+            $re = '/^(?<prefix>q\d*)_(?<part1>\w*)_*(?<part2>\w*)/m';
+            preg_match_all($re, $question_num, $matches, PREG_SET_ORDER, 0);
 
-            $i=1;
+            $prefix = $matches[0]['prefix'];
+            if ($prefix == "q7") {
+                $question_num = $prefix;
+                $part1 =  $response['part1'];
+                $part2 =  $response['part2'];
 
-            foreach ($coded as $code => $proxy_num) {
+                $q .= '<div class="col-md-2">';
+                $i=1;
+
+                foreach ($coded as $code => $proxy_num) {
 //                $r .= "<div class=\"btn-group\" data-toggle=\"buttons\">";
 //                $r .= "<label class=\"btn btn-primary\">";
 //                $r .="<input type=\"radio\" name=\"options\" id=\"option1\"> Option 1";
@@ -374,18 +454,60 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
 //
 //                $r .="/>$proxy_num</div>";
 
-
-
                 $q .= "<div class=\"form-control\">";
                 $q .= "<input name=" . $q_label . " value=" . $i . " $disabled class=\"form-check-input\" ";
                 $i++;
 
                 $q .= " type=\"radio\"";
-                if ((isset($response)) && ($response == $code) ) {
+                if ((isset($part1)) && ($part1 == $code) ) {
                     //LetterProject::log($response ."_". $code, "IN YESNO/RADIO");
                     $q .= " checked = checked";
                 }
                 $q .="/>$proxy_num</div>";
+                }
+                $q .= '</div>';
+                $q .= '<div class="col-md-10">';
+                $q .= "<textarea $readonly class=\"form-control\" id=\"$q_label\" name=\"$q_label\" rows=\"5\">$part2</textarea>";
+                $q .= '</div>';
+            } else {
+
+                /**
+                 *
+                 * <div class="btn-group" data-toggle="buttons">
+                 * <label class="btn btn-primary">
+                 * <input type="radio" name="options" id="option1"> Option 1
+                 * </label>
+                 * <label class="btn btn-primary">
+                 * <input type="radio" name="options" id="option2"> Option 2
+                 * </label>
+                 * <label class="btn btn-primary">
+                 * <input type="radio" name="options" id="option3"> Option 3
+                 * </label>
+                 * </div>
+                 */
+
+                $i = 1;
+
+                foreach ($coded as $code => $proxy_num) {
+//                $r .= "<div class=\"btn-group\" data-toggle=\"buttons\">";
+//                $r .= "<label class=\"btn btn-primary\">";
+//                $r .="<input type=\"radio\" name=\"options\" id=\"option1\"> Option 1";
+//                $r .= "</label>";
+//                $r .= "<input name=" . $q_label . " value=" . $i . " $disabled class=\"form-check-input\" ";
+//
+//                $r .="/>$proxy_num</div>";
+
+                    $q .= "<div class=\"form-control\">";
+                    $q .= "<input name=" . $q_label . " value=" . $i . " $disabled class=\"form-check-input\" ";
+                    $i++;
+
+                    $q .= " type=\"radio\"";
+                    if ((isset($response)) && ($response == $code)) {
+                        //LetterProject::log($response ."_". $code, "IN YESNO/RADIO");
+                        $q .= " checked = checked";
+                    }
+                    $q .= "/>$proxy_num</div>";
+                }
             }
 
             break;
@@ -435,6 +557,21 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
     return $q;
 }
 
+
+function renderNavButtons($previous,$next, $submit) {
+    $str = '<div class="input-group mb-3 group-end">';
+    if ($previous) {
+        $str .= '<a class="btn btn-primary btnPrevious">Previous</a>';
+    }
+    if ($next) {
+        $str .= '<a class="btn btn-primary btnNext">Next</a>';
+    }
+    if ($submit) {
+        $str .= '<a class="btn btn-primary btnSubmit">Submit</a>';
+    }
+    $str .= '</div>';
+    return $str;
+}
 /**
  * Renders for reconciling the 4 separate responses into a Final text box
  *
@@ -450,6 +587,10 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
  */
 function renderAnswers($question_num, $orig, $p1, $p2, $p3, $final) {
     global $module;
+    //what is last question field
+    $questions = $module->getProjectSetting('questions');
+    $last_question = end(array_values($questions));
+
 
     $fields = array('original'=>$orig, 'proxy_1'=>$p1,'proxy_2'=>$p2, 'proxy_3'=>$p3);
     global $Proj;
@@ -459,10 +600,10 @@ function renderAnswers($question_num, $orig, $p1, $p2, $p3, $final) {
 
 
     $q = "<div class=\"row\">
-            <div class=\"col-lg-6\">";
+            <div class=\"col-lg-12\">";
 
     foreach ($fields as $label => $response) {
-        $module->emLog("LABEL : $label with  RESPONSE :  $response");
+        //$module->emLog("Question num: $question_num / LABEL : $label / RESPONSE : ", $response);
 
         if (! isset($response)) {
             continue;
@@ -481,17 +622,26 @@ function renderAnswers($question_num, $orig, $p1, $p2, $p3, $final) {
         $q .= "</div>";
     }
 
-    $q .= "<br>
-  	<div class=\"form-group\"> 
-		<label class=\"control-label \" for=\"final\">Final Version</label> ";
+    $q .= "<br><h4>Final Version</h4>";
+
+  	$q .= "<div class=\"form-group\">";
+
     $q .= formatInputFields($question_num, 'final', $field_type, $final, true);
     //$q .="<textarea class=\"form-control\" id=\"$final_label\" name=\"$final_label\" rows=\"5\">$final</textarea>";
-	$q.="</div>
-		<div class=\"form-group\"> <!-- Submit button !-->
-		<button class=\"btn btn-primary \" name=\"submit\" type=\"submit\">Submit</button>
-	</div>
-  </div>
-</div>";
+	$q.="</div>";
+
+    //$q.="<div class=\"form-group\"> <!-- Submit button !-->";
+	//$q .="<button class=\"btn btn-primary \" name=\"submit\" type=\"submit\">Submit</button>";
+	//$q .="</div>";
+
+    if ($question_num == $last_question) {
+        $q .= renderNavButtons(true, false, true);
+    } else {
+        $q .= renderNavButtons(true, true, false);
+    }
+
+	$q .= "</div>";
+    $q .= "</div>";
 
     return $q;
 

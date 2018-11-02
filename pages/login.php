@@ -48,8 +48,8 @@ namespace Stanford\LetterProject;
                 <div class="input-group input-group-lg text-center code">
                     <input autofocus type="text" id='code' name='code' class="pt18 form-control text-center" placeholder="email address" aria-describedby="basic-addon1">
                     <span class="input-group-btn">
-                                <button type="submit" name="login" value="1" class="btn btn-primary pt18">Login</button>
-                            </span>
+                        <button type="submit" name="login" value="1" class="btn btn-primary pt18">Login</button>
+                    </span>
                 </div>
                 <div class="login_comment mb-20">Please contact Letter Project if you do not remember your code</div>
             </div>
