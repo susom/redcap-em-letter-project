@@ -37,7 +37,7 @@ if (!empty($_POST['action'])) {
         $data = array_merge($data, $_POST);
         unset($data['action']);
 
-        $module->emDEbug($data, "DATA from12REQUEST");
+        //$module->emDEbug($data, "DATA from12REQUEST");
 
         //overwrite to unselect the checkbox selections
         $q = REDCap::saveData('json', json_encode(array($data)), overwrite);
@@ -142,8 +142,6 @@ function organizeResponses($record) {
 
         $event_name = \REDCap::getEventNames(true, false, $event_id);
         $event_array[$event_name] = $event_id; //REDCap::getEventIdFromUniqueEvent($event);
-        $module->emLog("$event_name is the name for this id $event_id");
-
     }
      $event_array = array(\REDCap::getEventNames(true, false, $first_event)=>$first_event) + $event_array;
     //$first_event_array[\REDCap::getEventNames(true, false, $first_event)]=$first_event;
@@ -160,6 +158,8 @@ function organizeResponses($record) {
         $prefix = $matches[0]['prefix'];
         $part1 =  $matches[0]['part1'];
         $part2 =  $matches[0]['part2'];
+
+        //$module->emLog("PREFIX IS ".$prefix);
 
         foreach ($event_array as $event_name => $event_id) {
             //original and final arm have question prepended with 'q': i.e. q1, q2
@@ -187,9 +187,16 @@ function organizeResponses($record) {
                     }
                 }
                 $reorganized[$question][$event_name] = $decision_maker_array;
-            } elseif ($prefix == 'q7') {
+            } elseif (($prefix == 'q7') || ($prefix == 'q8')) {
                 $reorganized[$question][$event_name]  = array('part1' => $responses[$event_id][$prefix . '_'. $part1],
                      'part2' => $responses[$event_id][$prefix . '_' . $part1 . '_inst']);
+            } elseif ($question == 'q9') {
+                $reorganized[$question][$event_name] = $responses[$event_id][$question];
+                $reorganized[$question][$event_name]['q9_99_other'] = $responses[$event_id]['q9_99_other'];
+            } elseif ($question == 'q13') {
+                $reorganized[$question][$event_name]['q13'] = $responses[$event_id][$question];
+                $reorganized[$question][$event_name]['q13_donate_following'] = $responses[$event_id]['q13_donate_following'];
+
             } else {
                 $reorganized[$question][$event_name] = $responses[$event_id][$question];
             }
@@ -335,14 +342,14 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
 
                     $q .= "<div class=\"form-control\">";
                     $q .= '<div class="col-md-2">';
-                    $q .= '<h5>Decision Maker</h5>';
+                    $q .= '<label class="control-label" >Decision Maker</label>';
                     $q .= '<h4>#1</h4>';
                     $q .= '<h4>#2</h4>';
                     $q .= '<h4>#3</h4>';
                     $q .= '</div>';
 
                     $q .= '<div class="col-md-2">';
-                    $q .= '<label class="control-label" for="date">Name</label>';
+                    $q .= '<label class="control-label" >Name</label>';
                     $q .= '<input class="form-control form-check-input" id="'.$q_label.'_name_decision_1'.'" name="'.$q_label.'_name_decision_1'.'"  value="'.$response[1]['name_decision'].'" type="text">';
                     $q .= '<input class="form-control form-check-input" id="'.$q_label.'_name_decision_2'.'" name="'.$q_label.'_name_decision_2'.'"  value="'.$response[2]['name_decision'].'" type="text">';
                     $q .= '<input class="form-control form-check-input" id="'.$q_label.'_name_decision_3'.'" name="'.$q_label.'_name_decision_3'.'"  value="'.$response[3]['name_decision'].'" type="text">';
@@ -350,14 +357,14 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
 
 
                     $q .= '<div class="col-md-2">';
-                    $q .= '<label class="control-label" for="date">Relationship</label>';
+                    $q .= '<label class="control-label">Relationship</label>';
                     $q .= '<input class="form-control form-check-input" id="'.$q_label.'_relationship_decision_1'.'" name="'.$q_label.'_relationship_decision_1'.'"  value="'.$response[1]['relationship_decision'].'" type="text">';
                     $q .= '<input class="form-control form-check-input" id="'.$q_label.'_relationship_decision_2'.'" name="'.$q_label.'_relationship_decision_2'.'"  value="'.$response[2]['relationship_decision'].'" type="text">';
                     $q .= '<input class="form-control form-check-input" id="'.$q_label.'_relationship_decision_3'.'" name="'.$q_label.'_relationship_decision_3'.'"  value="'.$response[3]['relationship_decision'].'" type="text">';
                     $q .= '</div>';
 
                     $q .= '<div class="col-md-2">';
-                    $q .= '<label class="control-label" for="date">Address</label>';
+                    $q .= '<label class="control-label" >Address</label>';
                     $q .= '<input class="form-control form-check-input" id="'.$q_label.'_address_decision_1'.'" name="'.$q_label.'_address_decision_1'.'"  value="'.$response[1]['address_decision'].'" type="text">';
                     $q .= '<input class="form-control form-check-input" id="'.$q_label.'_address_decision_2'.'" name="'.$q_label.'_address_decision_2'.'"  value="'.$response[2]['address_decision'].'" type="text">';
                     $q .= '<input class="form-control form-check-input" id="'.$q_label.'_address_decision_3'.'" name="'.$q_label.'_address_decision_3'.'"  value="'.$response[3]['address_decision'].'" type="text">';
@@ -365,7 +372,7 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
 
 
                     $q .= '<div class="col-md-2">';
-                    $q .= '<label class="control-label" for="date">City, State, Zip Code</label>';
+                    $q .= '<label class="control-label" >City, State, Zip Code</label>';
                     $q .= '<input class="form-control form-check-input" id="'.$q_label.'_city_decision_1'.'" name="'.$q_label.'_city_decision_1'.'"  value="'.$response[1]['city_decision'].'" type="text">';
                     $q .= '<input class="form-control form-check-input" id="'.$q_label.'_city_decision_2'.'" name="'.$q_label.'_city_decision_2'.'"  value="'.$response[2]['city_decision'].'" type="text">';
                     $q .= '<input class="form-control form-check-input" id="'.$q_label.'_city_decision_3'.'" name="'.$q_label.'_city_decision_3'.'"  value="'.$response[3]['city_decision'].'" type="text">';
@@ -373,25 +380,28 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
 
 
                     $q .= '<div class="col-md-2">';
-                    $q .= '<label class="control-label" for="date">Phone Numbers</label>';
+                    $q .= '<label class="control-label" >Phone Numbers</label>';
                     $q .= '<input class="form-control form-check-input" id="'.$q_label.'_phone_decision_1'.'" name="'.$q_label.'_phone_decision_1'.'"  value="'.$response[1]['phone_decision'].'" type="text">';
                     $q .= '<input class="form-control form-check-input" id="'.$q_label.'_phone_decision_2'.'" name="'.$q_label.'_phone_decision_2'.'"  value="'.$response[2]['phone_decision'].'" type="text">';
                     $q .= '<input class="form-control form-check-input" id="'.$q_label.'_phone_decision_3'.'" name="'.$q_label.'_phone_decision_3'.'"  value="'.$response[3]['phone_decision'].'" type="text">';
                     $q .= '</div>';
-
                     $q .= '</div>';
-                    $q .= '<div></div>';
 
 
                 } else {
                     $i=1;
                     foreach ($response as $proxy_name=>$detail) {
                         $q .= '  <div class="border row">';
-                        $q .=  '<div class=" border col-xs-2 col-sm-2 col-lg-2" >'. $i. ': '. $detail['name_decision'].'</div>';
-                        $q .= ' <div class="col-xs-2 col-sm-2 col-lg-2" >'. $detail['relationship_decision'].'</div>';
+                        $q .= '<div class="border  col-xs-1 col-sm-1 col-lg-1"></div>';
+                        $q .= '<div class="border  col-xs-3 col-sm-3 col-lg-3"> Decision Maker ' . $i .' : </div>';
+                        $q .=  '<div class=" border col-xs-2 col-sm-2 col-lg-2" >'. $detail['name_decision'].'</div>';
+                        $q .= ' <div class="col-xs-6 col-sm-6 col-lg-6" >'. $detail['relationship_decision'].'</div>';
+
+                        /**
                         $q .= ' <div class="col-xs-4 col-sm-4 col-lg-4" > '. $detail['address_decision'].'</div>';
                         $q .= '<div class="col-xs-2 col-sm-2 col-lg-2" > '. $detail['city_decision'].'</div>';
                         $q .= ' <div class="col-xs-2 col-sm-2 col-lg-2" > '. $detail['phone_decision'].'</div>';
+                         */
                         $q .= ' </div>';
                         $i++;
                     }
@@ -423,6 +433,11 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
                 }
                 $q .="/>$proxy_num</div>";
             }
+            if ($question_num == "q9") {
+                $response_other = $response['q9_99_other'];
+
+                $q .= "<textarea $readonly class=\"form-control\" id=\"$q_label\" name=\"$q_label\" rows=\"5\">$response_other</textarea>";
+            }
 
             break;
         case "radio":
@@ -437,13 +452,14 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
             preg_match_all($re, $question_num, $matches, PREG_SET_ORDER, 0);
 
             $prefix = $matches[0]['prefix'];
+
             if ($prefix == "q7") {
                 $question_num = $prefix;
-                $part1 =  $response['part1'];
-                $part2 =  $response['part2'];
+                $part1 = $response['part1'];
+                $part2 = $response['part2'];
 
                 $q .= '<div class="col-md-2">';
-                $i=1;
+                $i = 1;
 
                 foreach ($coded as $code => $proxy_num) {
 //                $r .= "<div class=\"btn-group\" data-toggle=\"buttons\">";
@@ -454,21 +470,55 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
 //
 //                $r .="/>$proxy_num</div>";
 
-                $q .= "<div class=\"form-control\">";
-                $q .= "<input name=" . $q_label . " value=" . $i . " $disabled class=\"form-check-input\" ";
-                $i++;
+                    $q .= "<div class=\"form-control\">";
+                    $q .= "<input name=" . $q_label . " value=" . $i . " $disabled class=\"form-check-input\" ";
+                    $i++;
 
-                $q .= " type=\"radio\"";
-                if ((isset($part1)) && ($part1 == $code) ) {
-                    //LetterProject::log($response ."_". $code, "IN YESNO/RADIO");
-                    $q .= " checked = checked";
-                }
-                $q .="/>$proxy_num</div>";
+                    $q .= " type=\"radio\"";
+                    if ((isset($part1)) && ($part1 == $code)) {
+                        //LetterProject::log($response ."_". $code, "IN YESNO/RADIO");
+                        $q .= " checked = checked";
+                    }
+                    $q .= "/>$proxy_num</div>";
                 }
                 $q .= '</div>';
                 $q .= '<div class="col-md-10">';
                 $q .= "<textarea $readonly class=\"form-control\" id=\"$q_label\" name=\"$q_label\" rows=\"5\">$part2</textarea>";
                 $q .= '</div>';
+            } elseif ($prefix == "q8") {
+                $module->emLog("2PREFIX IS SDF".$prefix);
+                    $question_num = $prefix;
+                    $part1 =  $response['part1'];
+                    $part2 =  $response['part2'];
+
+                    $q .= '<div class="col-md-2">';
+                    $i=1;
+
+                    foreach ($coded as $code => $proxy_num) {
+//                $r .= "<div class=\"btn-group\" data-toggle=\"buttons\">";
+//                $r .= "<label class=\"btn btn-primary\">";
+//                $r .="<input type=\"radio\" name=\"options\" id=\"option1\"> Option 1";
+//                $r .= "</label>";
+//                $r .= "<input name=" . $q_label . " value=" . $i . " $disabled class=\"form-check-input\" ";
+//
+//                $r .="/>$proxy_num</div>";
+
+                        $q .= "<div class=\"form-control\">";
+                        $q .= "<input name=" . $q_label . " value=" . $i . " $disabled class=\"form-check-input\" ";
+                        $i++;
+
+                        $q .= " type=\"radio\"";
+                        if ((isset($part1)) && ($part1 == $code) ) {
+                            //LetterProject::log($response ."_". $code, "IN YESNO/RADIO");
+                            $q .= " checked = checked";
+                        }
+                        $q .="/>$proxy_num</div>";
+                    }
+                    $q .= '</div>';
+                    $q .= '<div class="col-md-10">';
+                    $q .= "<textarea $readonly class=\"form-control\" id=\"$q_label\" name=\"$q_label\" rows=\"5\">$part2</textarea>";
+                    $q .= '</div>';
+
             } else {
 
                 /**
@@ -485,6 +535,11 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
                  * </label>
                  * </div>
                  */
+
+                if ($question_num == "q13") {
+                    $q13_other = $response['q13_donate_following'];
+                    $response = $response['q13'];
+                }
 
                 $i = 1;
 
@@ -508,6 +563,11 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
                     }
                     $q .= "/>$proxy_num</div>";
                 }
+
+                if ($question_num == "q13") {
+                    $q .= "<textarea $readonly class=\"form-control\" id=\"$q_label\" name=\"$q_label\" rows=\"5\">$q13_other</textarea>";
+                }
+
             }
 
             break;
@@ -530,21 +590,61 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
             //get the choice enumeration from the metadata
             $coded = getFieldChoiceList($question_num);
 
+            $re = '/^(?<prefix>q\d*)_(?<part1>\w*)_*(?<part2>\w*)/m';
+            preg_match_all($re, $question_num, $matches, PREG_SET_ORDER, 0);
 
-            $i=1;
-            foreach ($coded as $code => $proxy_num) {
-                $q .= "<div class=\"form-control\">";
-                $q .= "<input name=" . $q_label . " value=" . $i . " $disabled class=\"form-check-input\" ";
+            $prefix = $matches[0]['prefix'];
 
-                //yesno decrements since 1=yes, 0=no
-                $i--;
+            if ($prefix == "q8") {
+                $question_num = $prefix;
+                $part1 =  $response['part1'];
+                    $part2 =  $response['part2'];
 
-                $q .= " type=\"radio\"";
-                if ((isset($response)) && ($response == $code) ) {
-                    //LetterProject::log($response ."_". $code, "IN YESNO/RADIO");
-                    $q .= " checked = checked";
+                    $q .= '<div class="col-md-2">';
+                    $i=1;
+
+                    foreach ($coded as $code => $proxy_num) {
+//                $r .= "<div class=\"btn-group\" data-toggle=\"buttons\">";
+//                $r .= "<label class=\"btn btn-primary\">";
+//                $r .="<input type=\"radio\" name=\"options\" id=\"option1\"> Option 1";
+//                $r .= "</label>";
+//                $r .= "<input name=" . $q_label . " value=" . $i . " $disabled class=\"form-check-input\" ";
+//
+//                $r .="/>$proxy_num</div>";
+
+                        $q .= "<div class=\"form-control\">";
+                        $q .= "<input name=" . $q_label . " value=" . $i . " $disabled class=\"form-check-input\" ";
+                        $i--;
+
+                        $q .= " type=\"radio\"";
+                        if ((isset($part1)) && ($part1 == $code) ) {
+                            //LetterProject::log($response ."_". $code, "IN YESNO/RADIO");
+                            $q .= " checked = checked";
+                        }
+                        $q .="/>$proxy_num</div>";
+                    }
+                    $inst_label = $q_label."_inst";
+                    $q .= '</div>';
+                    $q .= '<div class="col-md-10">';
+                    $q .= "<textarea $readonly class=\"form-control\" id=\"$inst_label\" name=\"$inst_label\" rows=\"5\">$part2</textarea>";
+                    $q .= '</div>';
+            } else {
+
+                $i = 1;
+                foreach ($coded as $code => $proxy_num) {
+                    $q .= "<div class=\"form-control\">";
+                    $q .= "<input name=" . $q_label . " value=" . $i . " $disabled class=\"form-check-input\" ";
+
+                    //yesno decrements since 1=yes, 0=no
+                    $i--;
+
+                    $q .= " type=\"radio\"";
+                    if ((isset($response)) && ($response == $code)) {
+                        //LetterProject::log($response ."_". $code, "IN YESNO/RADIO");
+                        $q .= " checked = checked";
+                    }
+                    $q .= "/>$proxy_num</div>";
                 }
-                $q .="/>$proxy_num</div>";
             }
             break;
         default:
@@ -615,7 +715,7 @@ function renderAnswers($question_num, $orig, $p1, $p2, $p3, $final) {
         $final_label = $question_num . "_final";  //i.e. q7_final
 
         $q .= "<div class=\"input-group\">
-               <span class=\"input-group-addon\">" . strtoupper($label) . "</span>";
+               <span class=\"input-group-addon\">" . strtoupper(str_replace('_', ' ', $label)) . "</span>";
 
         $q .= formatInputFields($question_num, $label, $field_type, $response, false);
 

@@ -91,25 +91,43 @@ $popover_content = array(
 <script type='text/javascript'>
     $(document).ready(function() {
 
-
-        $('[data-toggle="popover_cpr2"]').popover({
-            placement : 'bottom',
-            trigger : 'hover',
-            html : true,
-            content : '<div class="media"><a href="#" class="pull-left top"><img src="http://localhost/plugins/open/resources/popover_cpr.jpg" style="width:100%" class="media-object" alt="Sample Image"></a><div class="media-body"><h4 class="media-heading">CPR</h4><p> If a person’s heart stops or if that person stops breathing and the person has not indicated he or she does not want CPR, health care professionals usually try to revive him or her using CPR. In most cases when people have a terminal illness this is not successful. (You do not need to have an advance directive to request a do-not-resuscitate order.)</p></div></div>'
-        });
-        $('[data-toggle="popover_cpr3"]').popover({
-            placement : 'bottom',
-            trigger : 'hover',
-            html : true,
-            content : '<div class="media"><a href="#" class="pull-left"><img src="<?php print $module->getUrl("http://localhost/plugins/open/resources/popover_cpr.jpg",false,true) ?>" style="width:100%" class="media-object" alt="Sample Image"></a><div class="media-body"><h4 class="media-heading">CPR</h4><p> If a person’s heart stops or if that person stops breathing and the person has not indicated he or she does not want CPR, health care professionals usually try to revive him or her using CPR. In most cases when people have a terminal illness this is not successful. (You do not need to have an advance directive to request a do-not-resuscitate order.)</p></div></div>'
-        });
-
         $('[data-toggle="popover_cpr"]').popover({
-            placement : 'bottom',
-            trigger : 'hover',
-            html : true,
-            content : '<div class="media"><a href="#" class="pull-left"></a><div class="media-body"><h4 class="media-heading">CPR</h4><p> If a person’s heart stops or if that person stops breathing and the person has not indicated he or she does not want CPR, health care professionals usually try to revive him or her using CPR. In most cases when people have a terminal illness this is not successful. (You do not need to have an advance directive to request a do-not-resuscitate order.)</p></div></div>'
+            placement: 'right',
+            trigger: 'hover',
+            container: 'body',
+            html: true,
+            content: '<div class="media"><a href="#" class="top"><img src="https://redcap.stanford.edu/plugins/open/resources/popover_cpr.jpg" class="media-object" alt="Sample Image"></a><br><div class="media-body"><p> If a person’s heart stops or if that person stops breathing and the person has not indicated he or she does not want CPR, health care professionals usually try to revive him or her using CPR. In most cases when people have a terminal illness this is not successful. (You do not need to have an advance directive to request a do-not-resuscitate order.)</p></div></div>'
+        });
+        $('[data-toggle="popover_breathing"]').popover({
+            placement: 'right',
+            trigger: 'hover',
+            container: 'body',
+            html: true,
+            content: '<div class="media"><a href="#" class="top"><img src="https://redcap.stanford.edu/plugins/open/resources/popover_breathing.jpg" class="media-object" alt="Sample Image"></a><br><div class="media-body"><p> If your lungs stop working properly, doctors can connect you to a machine called a ventilator. A ventilator is a machine that pumps air into a person’s lungs through a tube in the person’s mouth or nose that goes down the throat. The machine breathes for a person when he or she cannot.</p></div></div>'
+        });
+
+        $('[data-toggle="popover_feeding_tube"]').popover({
+            placement: 'right',
+            trigger: 'hover',
+            container: 'body',
+            html: true,
+            content: '<div class="media"><a href="#" class="top"><img src="https://redcap.stanford.edu/plugins/open/resources/popover_feeding_tube.png" class="media-object" style="height:150px" alt="Sample Image"></a><br><div class="media-body"><p> There are various methods to feed people who can no longer eat, including inserting a tube into the stomach through a person’s nose or through the stomach wall to give food and fluids.</p></div></div>'
+        });
+
+        $('[data-toggle="popover_dialysis"]').popover({
+            placement: 'right',
+            trigger: 'hover',
+            container: 'body',
+            html: true,
+            content: '<div class="media"><a href="#" class="top"><img src="https://redcap.stanford.edu/plugins/open/resources/popover_dialysis.png" class="media-object" style="height:200px" alt="Dialysis"></a><br><div class="media-body"><p>If your kidneys stop working properly, your blood can be cleaned using a dialysis machine. The dialysis machine does the work of your kidneys. Most people have to go to a dialysis center and be dialyzed three times a week. Some are dialyzed at home.</p></div></div>'
+        });
+
+        $('[data-toggle="popover_hospice"]').popover({
+            placement: 'right',
+            trigger: 'hover',
+            container: 'body',
+            html: true,
+            content: '<div class="media"><a href="#" class="top"><img src="https://redcap.stanford.edu/plugins/open/resources/popover_hospice.jpg" class="media-object" style="height:200px" alt="Hospice"></a><br><div class="media-body"><p>is a type of care provided to a patient at the end of life. Hospice care focuses on enhancing the dying person’s quality of life and provides support to their family or friends. Hospice care is usually provided in the home, but also can be provided in a hospital or nursing home.</p></div></div>'
         });
 
 
@@ -141,7 +159,10 @@ $popover_content = array(
                 "action": "saveResponse",
                 "record_id": <?php print $participant_id; ?>,
                 "q1": $('#q1_final').val(),
-                "q2": $('#q2_final').val(),
+                "q2_milestone_1": $('input[name="q2_final_1"]').val(),
+                "q2_milestone_2": $('input[name="q2_final_2"]').val(),
+                "q2_milestone_3": $('input[name="q2_final_3"]').val(),
+                "q2_milestone_4": $('input[name="q2_final_4"]').val(),
                 "q3": $('#q3_final').val(),
                 "q4": $('#q4_final').val(),
                 "q5_name_decision_1": $('input[name="q5_final_name_decision_1"]').val(),
@@ -160,13 +181,7 @@ $popover_content = array(
                 "q5_phone_decision_2": $('input[name="q5_final_phone_decision_2"]').val(),
                 "q5_phone_decision_3": $('input[name="q5_final_phone_decision_3"]').val(),
                 "q6": $('input[name="q6_final"]:checked').val(),
-                "q8___1": $('input[name="q8_final_1"]').is(":checked") ? 1 : 0,
-                "q8___2": $('input[name="q8_final_2"]').is(":checked") ? 1 : 0,
-                "q8___3": $('input[name="q8_final_3"]').is(":checked") ? 1 : 0,
-                "q8___4": $('input[name="q8_final_4"]').is(":checked") ? 1 : 0,
-                "q8___99": $('input[name="q8_final_6"]').is(":checked") ? 1 : 0,
-                "q8___99": $('input[name="q8_final_6"]').is(":checked") ? 1 : 0,
-                "q8_99_other": $('#q8_99_other').val(),
+
                 "q7_cpr": $('input[name="q7_cpr_final"]:checked').val(),
                 "q7_breathing": $('input[name="q7_breathing_final"]:checked').val(),
                 "q7_dialyses": $('input[name="q7_dialyses_final"]:checked').val(),
@@ -177,8 +192,31 @@ $popover_content = array(
                 "q7_dialyses_inst": $('#q7_dialyses_final').val(),
                 "q7_transfusions_inst": $('#q7_transfusions_final').val(),
                 "q7_food_inst": $('#q7_food_final').val(),
-                "q9": $('input[name="q9_final"]:checked').val(),
-                "q10": $('#q10_final').val()
+
+                "q8_unconscious": $('input[name="q8_unconscious_final"]:checked').val(),
+                "q8_confused": $('input[name="q8_confused_final"]:checked').val(),
+                "q8_living": $('input[name="q8_living_final"]:checked').val(),
+                "q8_illness": $('input[name="q8_illness_final"]:checked').val(),
+                "q8_unconscious_inst": $('#q8_unconscious_final_inst').val(),
+                "q8_confused_inst": $('#q8_confused_final_inst').val(),
+                "q8_living_inst": $('#q8_living_final_inst').val(),
+                "q8_illness_inst": $('#q8_illness_final_inst').val(),
+
+                "q9___1": $('input[name="q9_final_1"]').is(":checked") ? 1 : 0,
+                "q9___2": $('input[name="q9_final_2"]').is(":checked") ? 1 : 0,
+                "q9___3": $('input[name="q9_final_3"]').is(":checked") ? 1 : 0,
+                "q9___4": $('input[name="q9_final_4"]').is(":checked") ? 1 : 0,
+                "q9___99": $('input[name="q9_final_5"]').is(":checked") ? 1 : 0,
+                "q9_99_other": $('#q9_final').val(),
+
+                "q10": $('input[name="q10_final"]:checked').val(),
+                "q11": $('input[name="q11_final"]:checked').val(),
+                "q12": $('input[name="q12_final"]:checked').val(),
+                "q13": $('input[name="q13_final"]:checked').val(),
+                "q13_donate_following": $('#q13_final').val(),
+
+                "q14___1": $('input[name="q14_final_1"]').is(":checked") ? 1 : 0,
+                "q15": $('#q15_final').val(),
             };
 
 //            var q6 = [];
@@ -241,6 +279,7 @@ $popover_content = array(
     .nav-tabs {
         display:none;
     }
+
 </style>
 
 
