@@ -2,22 +2,23 @@
 namespace Stanford\LetterProject;
 /** @var \Stanford\LetterProject\LetterProject $module */
 
-$popover_content = array(
-        'cpr' => 'If a person’s heart stops or if that person stops breathing and the person has not indicated he or she'.
-            ' does not want CPR, health care professionals usually try to revive him or her using CPR. In most cases when'.
-            ' people have a terminal illness this is not successful. (You do not need to have an advance directive to request a do-not-resuscitate order.)'
-);
-
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lan="en">
 <head>
-    <title><?php echo LetterProject::$config['project_title'] ?></title>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+
+    <!-- Required meta tags -->
+    <title>Stanford Letter Project</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
 
     <!-- Bootstrap core CSS -->
-    <link rel="stylesheet" type="text/css" media="screen" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <!-- link rel="stylesheet" type="text/css" media="screen" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="<?php print $module->getUrl("images/stanford_favicon.ico",false,true) ?>">
@@ -37,47 +38,59 @@ $popover_content = array(
     </style>
 
 
+    <!--
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="<?php print $module->getUrl("js/jquery-3.2.1.min.js",false,true) ?>"></script>
+    <!--script src="<?php print $module->getUrl("js/jquery-3.2.1.min.js",false,true) ?>"></script-->
 
     <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js'></script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <!--script src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js'></script-->
+    <!--link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"-->
+    <!--script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script-->
+    <!--script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script-->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+
+
 
     <!-- Add local css and js for module -->
     <link href="<?php print $module->getUrl('css/letter_project.css', false, true) ?>" rel="stylesheet" type="text/css" media="screen,print"/>
 
 
     <!--
-        <script type='text/javascript' src="<?php print $module->getUrl("js/reconciliation.js") ?>"></script>
+        <script type='text/javascript' src="<?php print $module->getUrl("js/letter_project.js") ?>"></script>
     -->
+
+
 </head>
 <body>
-<div class="container">
-    <div class="well">
-        <div class="row user_title">
-            <div class="col-xs-6">
-                <span class="glyphicon glyphicon-user"></span>
-                <span class="user_name"><?php print $name; ?></span>
-            </div>
-            <div class="col-xs-6 text-right">
-                <span class="doctor_name"><?php print  "Doctor: ". $doctor_name; ?></span>
+    <div class="container">
+        <nav class="navbar navbar-expand navbar-dark">
 
-            </div>
-        </div>
-    </div>
+            <span class="navbar-brand mb-0 h1 float-left">Letter Project</span>
 
+            <div class="collapse navbar-collapse justify-content-start" id="navbarText">
+                <span class="navbar-brand mb-0 h1 float-left"><?php print  $name; ?></span>
+            </div>
+
+            <div class="collapse navbar-collapse justify-content-end" id="navbarText">
+                <span class="navbar-text doctor_name float-right"><?php print  "Doctor: ". $doctor_name; ?></span>
+            </div>
+
+        </nav>
     <div>
 
 
 
     <div id="box">
         <div class="main">
-            <ul class="nav nav-tabs assessment-tabs">
-                <li class="active"><a data-toggle="tab" data-key="home" href="#home">Home</a></li>
+            <ul class="nav nav-tabs">
+                <li class="nav-item"><a class="nav-link active" id="tab-home" data-toggle="tab" role="tab" href="#home" aria-controls="home" aria-selected='true'>Home</a></li>
+
                 <?php renderTabs(); ?>
+                <li><a data-toggle="tab" data-key="print_page" href="#print_page">Print Page</a></li>
             </ul>
             <div class="tab-content">
                 <?php renderTabDivs($record); ?>
@@ -132,25 +145,232 @@ $popover_content = array(
 
 
         // Bind submit button
-        $('button[name="submit"]').on('click', function() { saveResponse(); });
+        $('button[name="submit"]').on('click', function() {
+            saveResponse();
+        });
 
-          $('.btnNext').click(function() {
-              console.log("NEXT!");
-              $('.nav-tabs > .active').next('li').find('a').trigger('click');
-               saveResponse();
-          });
+        $('.btnNext').click(function() {
+            console.log("NEXT!");
+              //$('.nav-tabs > .active').next('li').find('a').trigger('click');
+            $('.nav-tabs > .nav-item > .active').parent().next('li').find('a').trigger('click');
+            saveResponse();
+        });
 
         $('.btnPrevious').click(function() {
             console.log("PREVIOUS!");
-            $('.nav-tabs > .active').prev('li').find('a').trigger('click');
+            //$('.nav-tabs > .active').prev('li').find('a').trigger('click');
+            $('.nav-tabs > .nav-item > .active').parent().prev('li').find('a').trigger('click');
+
             saveResponse();
         });
 
-        $('.btnSubmit').click(function() {
-            console.log("SUBMITTING!");
+        $('.btnWitness').click(function() {
             saveResponse();
+            console.log("SUBMITTING!  need to redirect to witnesses");
+
+            //use ajax??
+            //checkWitnessForm();
+
+            //or just get it from php
+            var witness_url = "<?php print $survey_link ?>";
+            console.log("REDRIECTING TO ", witness_url);
+             $(location).attr('href', witness_url);
+            consoel.log("RETURNED TO RECON");
         });
 
+        $('.btnPrint').click(function() {
+            saveResponse();
+            console.log("Print PDF");
+
+            //update the PDF
+            updatePDF();
+            $('.nav-tabs a[href="#print_page"]').tab('show');
+
+        });
+
+
+        //bind the buttons from the print page tab
+        $('#btn-email-pdf').click(function() {
+            var selected = new Array();
+            var participant_id = "<?php print $participant_id; ?>";
+            console.log("EMAIL THIS");
+             $('#checkbox:checked').each(function() {
+                 selected.push($(this).attr('value'));
+             });
+
+            var data = {
+                "action": "emailPDF",
+                "record_id": participant_id,
+                "data": selected
+            }
+
+            console.log(data);
+
+            var ajax = $.ajax({
+                type: "POST",
+                data: data,
+                dataType: "json"
+            })
+                .done(function(data) {
+                    if(data.result !== "success") {
+                        // An error occurred
+                        alert (data.message);
+                    } else {
+                        //alert ("Your entries has been saved.");
+                        alert (data.message);
+                    }
+                })
+                .fail(function() {
+                    alert ('Email PDF Failed!');
+                    console.log( "error saving responses : statusText:  " + jqxhr.statusText);
+                    console.log( "error saving responses : status: " + jqxhr.status);
+                })
+                .always(function() {
+
+                });
+        });
+
+        $('#btn-download-pdf').click(function() {
+            var participant_id = "<?php print $participant_id; ?>";
+
+            console.log("DOWNLOAD THIS");
+            var data = {
+                "action": "downloadPDF",
+                "record_id": participant_id
+            }
+
+            var jqxhr = $.ajax({
+                type: "POST",
+                data: data,
+                dataType: "json"
+            })
+                .done(function(data) {
+                    if(data.result !== "success") {
+                        // An error occurred
+                        alert (data.message);
+                    } else {
+                        alert ("Your letter will be downloaded to your Downloads folder. ");
+                        window.open(data.url);
+                        return false;
+                    }
+                })
+                .fail(function() {
+                    alert ('DOWNOAD PDF Failed!');
+                    console.log( "error saving responses : statusText:  " + jqxhr.statusText);
+                    console.log( "error saving responses : status: " + jqxhr.status);
+                })
+                .always(function() {
+
+                });
+
+            return false;
+
+        });
+
+        $('#btn-print-pdf').click(function() {
+            console.log("PRINT THIS");
+
+             var participant_id = "<?php print $participant_id; ?>";
+
+            var data = {
+                "action": "printPDF",
+                "record_id": participant_id
+            }
+
+            var jqxhr = $.ajax({
+                type: "POST",
+                data: data,
+                dataType: "json"
+            })
+                .done(function(data) {
+                    if(data.result !== "success") {
+                        // An error occurred
+                        alert (data.message);
+                    } else {
+                        alert ("The print PDF will be displayed in a new tab. ");
+                        window.open(data.url);
+                        return false;
+                    }
+                })
+                .fail(function() {
+                    alert ('PRINT PDF Failed!');
+                    console.log( "error saving responses : statusText:  " + jqxhr.statusText);
+                    console.log( "error saving responses : status: " + jqxhr.status);
+                })
+                .always(function() {
+
+                });
+
+            return false;
+        });
+
+
+        function checkWitnessForm() {
+            var participant_id = <?php print $participant_id; ?>;
+
+            var w_data = {
+                "action": "checkWitnessForm",
+                "record_id": participant_id
+            };
+            console.log("WITNESS FORMS", participant_id);
+
+
+            //set up redirect
+            var ajax = $.ajax({
+                type: "POST",
+                data: w_data,
+                dataType: "json"
+            })
+                .done(function(data) {
+                    if(data.result !== "success") {
+                        // An error occurred
+                        alert (data.message);
+                    } else {
+                        //alert ("Your entries has been saved.");
+                    }
+                })
+                .fail(function() {
+                    alert ('checkWitnessForm Failed!');
+                    console.log( "error saving responses : statusText:  " + jqxhr.statusText);
+                    console.log( "error saving responses : status: " + jqxhr.status);
+                })
+                .always(function() {
+
+                });
+
+        }
+
+        /**
+         * TODO: IS THIS NEEDED???
+         */
+        function updatePDF() {
+            var data = {
+                "action": "updatePDF",
+                "record_id": <?php print $participant_id; ?>
+            };
+
+               var ajax = $.ajax({
+                   type: "POST",
+                   data: data,
+                   dataType: "json"
+            })
+                .done(function(data) {
+                    if(data.result !== "success") {
+                        // An error occurred
+                        alert (data.message);
+                    } else {
+                        //alert ("Your entries has been saved.");
+                    }
+                })
+                .fail(function() {
+                    alert ('updatePDF Failed!');
+                    console.log( "error saving responses : statusText:  " + jqxhr.statusText);
+                    console.log( "error saving responses : status: " + jqxhr.status);
+                })
+                .always(function() {
+
+                });
+        }
 
         function saveResponse(record) {
             console.log("SAVING!!");
@@ -165,21 +385,21 @@ $popover_content = array(
                 "q2_milestone_4": $('input[name="q2_final_4"]').val(),
                 "q3": $('#q3_final').val(),
                 "q4": $('#q4_final').val(),
-                "q5_name_decision_1": $('input[name="q5_final_name_decision_1"]').val(),
-                "q5_name_decision_2": $('input[name="q5_final_name_decision_2"]').val(),
-                "q5_name_decision_3": $('input[name="q5_final_name_decision_3"]').val(),
-                "q5_relationship_decision_1": $('input[name="q5_final_relationship_decision_1"]').val(),
-                "q5_relationship_decision_2": $('input[name="q5_final_relationship_decision_2"]').val(),
-                "q5_relationship_decision_3": $('input[name="q5_final_relationship_decision_3"]').val(),
-                "q5_address_decision_1": $('input[name="q5_final_address_decision_1"]').val(),
-                "q5_address_decision_2": $('input[name="q5_final_address_decision_2"]').val(),
-                "q5_address_decision_3": $('input[name="q5_final_address_decision_3"]').val(),
-                "q5_city_decision_1": $('input[name="q5_final_city_decision_1"]').val(),
-                "q5_city_decision_2": $('input[name="q5_final_city_decision_2"]').val(),
-                "q5_city_decision_3": $('input[name="q5_final_city_decision_3"]').val(),
-                "q5_phone_decision_1": $('input[name="q5_final_phone_decision_1"]').val(),
-                "q5_phone_decision_2": $('input[name="q5_final_phone_decision_2"]').val(),
-                "q5_phone_decision_3": $('input[name="q5_final_phone_decision_3"]').val(),
+                "q5_name_decision_1": $("#q5_final_name_decision_1").val(),
+                "q5_name_decision_2": $("#q5_final_name_decision_2").val(),
+                "q5_name_decision_3": $("#q5_final_name_decision_3").val(),
+                "q5_relationship_decision_1": $("#q5_final_relationship_decision_1").val(),
+                "q5_relationship_decision_2": $("#q5_final_relationship_decision_2").val(),
+                "q5_relationship_decision_3": $("#q5_final_relationship_decision_3").val(),
+                "q5_address_decision_1": $("#q5_final_address_decision_1").val(),
+                "q5_address_decision_2": $("#q5_final_address_decision_2").val(),
+                "q5_address_decision_3": $("#q5_final_address_decision_3").val(),
+                "q5_city_decision_1": $("#q5_final_city_decision_1").val(),
+                "q5_city_decision_2": $("#q5_final_city_decision_2").val(),
+                "q5_city_decision_3": $("#q5_final_city_decision_3").val(),
+                "q5_phone_decision_1": $("#q5_final_phone_decision_1").val(),
+                "q5_phone_decision_2": $("#q5_final_phone_decision_2").val(),
+                "q5_phone_decision_3": $("#q5_final_phone_decision_3").val(),
                 "q6": $('input[name="q6_final"]:checked').val(),
 
                 "q7_cpr": $('input[name="q7_cpr_final"]:checked').val(),
@@ -274,13 +494,5 @@ $popover_content = array(
         }
     });
 </script>
-
-<style>
-    .nav-tabs {
-        display:none;
-    }
-
-</style>
-
 
 

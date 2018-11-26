@@ -24,6 +24,21 @@
         "name": "Proxy Letter Reconciliation",
         "icon": "gear",
         "url": "ProxyLetterReconciliation.php?NOAUTH"
+      },
+            {
+        "name": "Test PDF",
+        "icon": "gear",
+        "url": "TestPDF.php"
+      },
+            {
+        "name": "Test PDF 2",
+        "icon": "gear",
+        "url": "TestPDF2.php"
+      },
+      {
+        "name": "Get Letter PDF",
+        "icon": "gear",
+        "url": "GetLetter.php"
       }
     ]
   },
@@ -79,6 +94,12 @@
       "type": "form-list"
     },
     {
+      "key": "witness-survey",
+      "name": "<b>Witness Survey</b>",
+      "required": false,
+      "type": "form-list"
+    },
+    {
       "key": "hash",
       "name": "<b>Hash Field</b>",
       "required": false,
@@ -105,6 +126,24 @@
     {
       "key": "code-field",
       "name": "<b>Code lookup field</b>",
+      "required": false,
+      "type": "field-list"
+    },
+    {
+      "key": "proxy-1-field",
+      "name": "<b>Proxy 1 field</b>",
+      "required": false,
+      "type": "field-list"
+    },
+    {
+      "key": "proxy-2-field",
+      "name": "<b>Proxy 2 field</b>",
+      "required": false,
+      "type": "field-list"
+    },
+    {
+      "key": "proxy-3-field",
+      "name": "<b>Proxy 3 field</b>",
       "required": false,
       "type": "field-list"
     },

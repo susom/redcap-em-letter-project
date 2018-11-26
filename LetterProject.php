@@ -8,9 +8,15 @@
 
 namespace Stanford\LetterProject;
 
-use \REDCap as REDCap;
 
-class LetterProject extends \ExternalModules\AbstractExternalModule {
+use \REDCap as REDCap;
+use Message;
+use PHPMailer\PHPMailer\PHPMailer;
+
+
+class LetterProject extends \ExternalModules\AbstractExternalModule
+{
+
     public static $config;
 
 //
@@ -25,19 +31,69 @@ class LetterProject extends \ExternalModules\AbstractExternalModule {
 //        }
 //    }
 
-    function hook_survey_complete($project_id, $record = NULL, $instrument, $event_id, $group_id, $survey_hash, $response_id, $repeat_instance) {
+    function hook_survey_complete($project_id, $record = NULL, $instrument, $event_id, $group_id, $survey_hash, $response_id, $repeat_instance)
+    {
         $this->emDebug("Starting Hook Survey Complete", $instrument);
+
+        //if this is the final event,
+        if ($event_id == $this->getProjectSetting('final-event') &&
+            ($instrument == $this->getProjectSetting('witness-survey'))) {
+
+            $this->emDebug("Final EVENT: this is the right instrument: $instrument and event: $event_id");
+            $event_name = REDCap::getEventNames(true, false, $event_id);
+
+            $get_fields = array($this->getProjectSetting('hash-url'),
+                $this->getProjectSetting('code-field'));
+            $this->emDebug($get_fields);
+            //lookup the hash for the record id and redirect to the print page.
+            $q = REDCap::getData('array', $record, $get_fields, $this->getProjectSetting('first-event'));
+            $hash_url = $q[$record][$this->getProjectSetting('first-event')][$this->getProjectSetting('hash-url')];
+            $email_code = $q[$record][$this->getProjectSetting('first-event')][$this->getProjectSetting('code-field')];
+
+
+            $this->emDebug($q, $hash_url, "HASH_URL");
+            ?>
+            <style>
+                #pagecontainer {
+                    display: none;
+                }
+            </style>
+            <form id="survey_complete" method="POST" action="<?php echo $hash_url ?>">
+                <input type="hidden" name="code" value="<?php echo $email_code ?>"/>
+                <input type="hidden" name="login" value="1"/>
+                <input type="hidden" name="print_page" value="1"/>
+
+            </form>
+            <script>
+                $('#survey_complete').submit();
+                $(document).ready(function () {
+                    $('.nav-tabs a:last').tab('show');
+                });
+            </script>
+            <?php
+
+
+//            redirect($hash_url);
+
+
+        }
+
 //        $this->setHash($project_id, $record, $instrument);
 //
 //        exit();
     }
 
-    function hook_save_record($project_id, $record = NULL, $instrument, $event_id, $group_id = NULL, $survey_hash = NULL, $response_id = NULL, $repeat_instance = 1) {
+    function hook_save_record($project_id, $record = NULL, $instrument, $event_id, $group_id = NULL, $survey_hash = NULL, $response_id = NULL, $repeat_instance = 1)
+    {
         //if this is the original letter in , then save it to the final letter
         if ($event_id = $this->getProjectSetting('first-event')) {
-            $this->emLog("FIRST EVENT: this is the $instrument and $event_id vs ".
+            $this->emDebug("FIRST EVENT: this is the $instrument and $event_id vs " .
                 $this->getProjectSetting('first-event'));
+        }
 
+        if ($event_id = $this->getProjectSetting('final-event')) {
+            $this->emDebug("FINAL EVENT: this is the $instrument and $event_id vs " .
+                $this->getProjectSetting('first-event'));
         }
 
 
@@ -45,18 +101,44 @@ class LetterProject extends \ExternalModules\AbstractExternalModule {
         if ($event_id == $this->getProjectSetting('first-event') &&
             ($instrument == $this->getProjectSetting('letter-survey'))) {
 
-            $this->emLog("FIRST EVENT: this is the right instrument: $instrument and event: $event_id");
+            $this->emDebug("FIRST EVENT: this is the right instrument: $instrument and event: $event_id");
             $this->copyToFinal($project_id, $record, $instrument, $event_id);
+
+            //set the Hash in the first form
+            $this->emDebug("Starting Save Record", $instrument);
+            $this->setHash($project_id, $record, $instrument);
 
         }
 
 
-        $this->emDebug("Starting Save Record", $instrument);
-        $this->setHash($project_id, $record, $instrument);
     }
 
-    public function copyToFinal($project_id, $record, $instrument, $event_id) {
-        $form_complete_field = $instrument."_complete";
+
+    public function getHash($record, $hash_field, $hash_field_event)
+    {
+
+        $this->emDebug("Locating hash for this record: " . $record);
+        $get_fields = array(
+            REDCap::getRecordIdField(),
+            $hash_field
+        );
+        $event_name = REDCap::getEventNames(true, false, $hash_field_event);
+        $filter = "[" . $event_name . "][" . $hash_field . "] = '$phone'";
+
+
+        $records = REDCap::getData('array', $record, $get_fields, null, null, false, false, false, $filter);
+        //$this->emDebug($filter, $records, $project_id, $pid, $filter, $event_name);
+
+        // return record_id or false
+        reset($records);
+        $first_key = key($records);
+        return ($first_key);
+    }
+
+
+    public function copyToFinal($project_id, $record, $instrument, $event_id)
+    {
+        $form_complete_field = $instrument . "_complete";
 
         //get data from final instrument
         //if final form is incomplete, move over data from the first form.
@@ -67,8 +149,6 @@ class LetterProject extends \ExternalModules\AbstractExternalModule {
             $this->getProjectSetting('final-event'));
         $results = json_decode($q, true);
         $result = current($results);
-        $this->emLog($result, "Current FINAL Record");
-
 
         //if _complete = 0 and first survey = 2 then copy over data
         if ($result[$form_complete_field] == 0) {
@@ -88,11 +168,10 @@ class LetterProject extends \ExternalModules\AbstractExternalModule {
 
             if ($f_result[$form_complete_field] == 2) {
                 $f_result[REDCap::getRecordIdField()] = $record;
-                $redcap_event_name = REDCap::getEventNames(true, false,$this->getProjectSetting('final-event'));
+                $redcap_event_name = REDCap::getEventNames(true, false, $this->getProjectSetting('final-event'));
 
                 $f_result['redcap_event_name'] = $redcap_event_name;
-                $save_data= array_merge($id_array,$f_result );
-
+                $save_data = array_merge($id_array, $f_result);
 
 
                 //first form is complete, do the migration
@@ -103,9 +182,10 @@ class LetterProject extends \ExternalModules\AbstractExternalModule {
         }
     }
 
-    public function setHash($project_id, $record, $instrument) {
+    public function setHash($project_id, $record, $instrument)
+    {
         $start_survey = $this->getProjectSetting('starting-survey');
-        $this->emLog("Starting survey is ".$start_survey);
+        $this->emLog("Starting survey is " . $start_survey);
 
         // Set Record Hash and Hash Url
         if ($instrument == $start_survey) {
@@ -119,43 +199,44 @@ class LetterProject extends \ExternalModules\AbstractExternalModule {
                     $this->getProjectSetting('hash-url')
                 ),
                 $this->getProjectSetting('first-event')
-                //LetterProject::$config['first_event']
+            //LetterProject::$config['first_event']
             );
-            $results = json_decode($q,true);
+            $results = json_decode($q, true);
             $result = current($results);
 
-            $this->emLog($result,"DEBUG", "Current Record");
+            $this->emLog($result, "DEBUG", "Current Record");
 
             $hash = isset($result[$this->getProjectSetting('hash')]) ? $result[$this->getProjectSetting('hash')] : '';
             $hash_url = isset($result[$this->getProjectSetting('hash-url')]) ? $result[$this->getProjectSetting('hash-url')] : '';
-            $this->emDebug($hash,"Current Hash");
-            $this->emDebug($hash_url,"Current Hash Url");
+            $this->emDebug($hash, "Current Hash");
+            $this->emDebug($hash_url, "Current Hash Url");
             if (empty($hash)) {
                 // Generate a unique hash for this project
                 $new_hash = generateRandomHash(8, false, TRUE, false);
-                $api_url  = $this->getUrl('ProxyLetterReconciliation.php', true, true);
+                $api_url = $this->getUrl('ProxyLetterReconciliation.php', true, true);
                 $new_hash_url = $api_url . "&e=" . $new_hash;
-                $this->emDebug($new_hash_url,"New Hash ()");
+                $this->emDebug($new_hash_url, "New Hash ()");
 
                 // Save it to the record (both as hash and hash_url for piping)
                 $result[$this->getProjectSetting('hash')] = $new_hash;
                 $result[$this->getProjectSetting('hash-url')] = $new_hash_url;
                 $response = REDCap::saveData('json', json_encode(array($result)));
-                $this->emDebug($record ,": Set unique Hash Url to $new_hash_url with result " . json_encode($response));
+                $this->emDebug($record, ": Set unique Hash Url to $new_hash_url with result " . json_encode($response));
             } else {
-                $this->emDebug($hash, $record. " has an existing hash url" );
+                $this->emDebug($hash, $record . " has an existing hash url");
             }
         } else {
-            $this->emDebug("No Match","DEBUG");
+            $this->emDebug("No Match", "DEBUG");
         }
     }
 
-    public function getResponseData($id, $select=null, $event=null ) {
- //       $this->emLog($id, "ID");
+    public function getResponseData($id, $select = null, $event = null)
+    {
+        //       $this->emLog($id, "ID");
 //        $this->emLog($event, "EVENT");
         // get  responses for this ID and event
         $q = REDCap::getData('array', $id, $select, $event);
-       //$q = REDCap::getData('array', $id);
+        //$q = REDCap::getData('array', $id);
 
         //$results = json_decode($q, true);
 
@@ -172,28 +253,91 @@ class LetterProject extends \ExternalModules\AbstractExternalModule {
     }
 
 
+    public function sendEmail($to, $from, $subject, $msg, $attachment)
+    {
+        global $module;
+
+        $eol = PHP_EOL;
+        $separator = md5(time());
+        //boundary
+        $semi_rand = md5(time());
+        $mime_boundary = "==Multipart_Boundary_x{$semi_rand}x";
+
+
+        //headers for attachment
+        //header for sender info
+        $headers = "From: "." <".$from.">";
+        $headers .= "\nMIME-Version: 1.0\n" . "Content-Type: multipart/mixed;\n" . " boundary=\"{$mime_boundary}\"";
+
+        //multipart boundary
+        $message = "--{$mime_boundary}\n" . "Content-Type: text/html; charset=\"UTF-8\"\n" .
+            "Content-Transfer-Encoding: 7bit\n\n" . $msg . "\n\n";
+        $message .= "--{$mime_boundary}\n";
+        $message .= $attachment;
+        $message .= "--{$mime_boundary}--";
+
+        //send email
+        //$mail = mail($to, $subject, $message, $headers, $returnpath);
+
+/***/
+
+
+/**
+
+        $headers = 'From: <' . $from . '>' . $eol;
+        $headers .= 'MIME-Version: 1.0' . $eol;
+        $headers .= "Content-Type: multipart/mixed; boundary=\"" . $separator . "\"";
+
+//$message = "--".$separator.$eol;
+//$message .= "Content-Transfer-Encoding: 7bit".$eol.$eol;
+        $message .= $msg . $eol;
+
+
+//$message .= "--".$separator.$eol;
+//$message .= "Content-Type: text/html; charset=\"iso-8859-1\"".$eol;
+//$message .= "Content-Transfer-Encoding: 8bit".$eol.$eol;
+
+        $message .= "--" . $separator . $eol;
+//$message .= "Content-Type: application/pdf; name=\"".$fileName."\"".$eol;
+//$message .= "Content-Transfer-Encoding: base64".$eol;
+//$message .= "Content-Disposition: attachment".$eol.$eol;
+        $message .= $attachment . $eol;
+        //$message .= "--" . $separator . "--";
+ *
+ */
+
+        if (!mail($to, $subject, $message, $headers)) {
+            $module->emDebug("Email NOT sent");
+            return false;
+        }
+        $module->emDebug("Email sent");
+        return true;
+    }
 
 
     /**
      * Read the current config from a single key-value pair in the external module settings table
      */
-    function getConfigAsString() {
+    function getConfigAsString()
+    {
         $string_config = $this->getProjectSetting($this->PREFIX . '-config');
         // SurveyDashboard::log($string_config);
         return $string_config;
     }
 
-    function setConfigAsString($string_config) {
+    function setConfigAsString($string_config)
+    {
         $this->setProjectSetting($this->PREFIX . '-config', $string_config);
     }
 
 
-    public function lookupByCode($code) {
+    public function lookupByCode($code)
+    {
         $event_id = $this->getProjectSetting('first-event');
         $event = REDCap::getEventNames(true, false, $event_id);
         $code_field = $this->getProjectSetting('code-field');
 
-        $filter = "[".$event. "][" . $code_field . "] = '$code'";
+        $filter = "[" . $event . "][" . $code_field . "] = '$code'";
         $get_fields = array(REDCap::getRecordIdField());
         $this->emLog($filter, "FILTER");
 
@@ -202,17 +346,17 @@ class LetterProject extends \ExternalModules\AbstractExternalModule {
             NULL, FALSE, FALSE, FALSE, $filter);
         $results = json_decode($q, true);
 
-        if(count($results) > 1) {
+        if (count($results) > 1) {
             // There is a duplicate record in the table
             $participants = array();
             foreach ($results as $result) $participants[] = $result[REDCap::getRecordIdField()];
             $msg = "Warning: more than 1 participant is using the login code $code: " . implode(", ", $participants) . "\n" .
                 "When they log in they are using the 'first' record so you should be able to delete the second instance after confirming there is no assessment data";
-            REDCap::email($this->getProjectSetting('project-admin-email'), $this->getProjectSetting('project-from-email'),$this->getProjectSetting('project-title'), $msg);
+            REDCap::email($this->getProjectSetting('project-admin-email'), $this->getProjectSetting('project-from-email'), $this->getProjectSetting('project-title'), $msg);
         }
 
         // If the code does not match return false
-        if(count($results) == 0) {
+        if (count($results) == 0) {
             return false;
         }
 
@@ -221,8 +365,8 @@ class LetterProject extends \ExternalModules\AbstractExternalModule {
         return $result[REDCap::getRecordIdField()];
     }
 
-
-    public static function getSessionMessage() {
+    public static function getSessionMessage()
+    {
         if (isset($_SESSION['msg']) && !empty($_SESSION['msg'])) {
             $html = "
             <div id='session-message' class='alert alert-info text-center fade in' data-dismiss='alert'>
@@ -241,20 +385,23 @@ class LetterProject extends \ExternalModules\AbstractExternalModule {
      * emLogging integration
      *
      */
-    function emLog() {
+    function emLog()
+    {
         $emLogger = \ExternalModules\ExternalModules::getModuleInstance('em_logger');
         $emLogger->emLog($this->PREFIX, func_get_args(), "INFO");
     }
 
-    function emDebug() {
+    function emDebug()
+    {
         // Check if debug enabled
-        if ( $this->getSystemSetting('enable-system-debug-logging') || ( !empty($_GET['pid']) && $this->getProjectSetting('enable-project-debug-logging'))) {
+        if ($this->getSystemSetting('enable-system-debug-logging') || (!empty($_GET['pid']) && $this->getProjectSetting('enable-project-debug-logging'))) {
             $emLogger = \ExternalModules\ExternalModules::getModuleInstance('em_logger');
             $emLogger->emLog($this->PREFIX, func_get_args(), "DEBUG");
         }
     }
 
-    function emError() {
+    function emError()
+    {
         $emLogger = \ExternalModules\ExternalModules::getModuleInstance('em_logger');
         $emLogger->emLog($this->PREFIX, func_get_args(), "ERROR");
     }

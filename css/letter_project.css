@@ -1,10 +1,80 @@
 /* EMAIL MODAL */
 .input-group { margin-bottom: 10px; }
-span.input-group-addon { min-width: 120px; font-weight: bold; text-align:left }
+.input-group-text {
+    min-width: 350px; font-weight: bold; text-align:left;
+    background-color: #e3e4e4;}
 
-.input-group-addon:first-child {
+.btnNext {
+     float:right;
+
+}
+
+
+.btnPrevious, .btnNext {
+    min-width: 120px;
+
+}
+
+.btnWitness {
+    float:right;
+}
+
+
+.btnPrint {
+    margin-top: 50px;
+}
+
+
+
+.input-group-text:first-child {
     border: 0;
 }
+
+.input-group {
+    background-color: #edeeee;
+}
+
+.textgroup{
+    /* Other styling.. */
+    display:inline-block;
+    text-align: left;
+    clear: both;
+    float:left;
+    padding-top: 10px;
+}
+
+.form-group {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border: 3px solid #CCCCCC;
+    width:100%;
+    min-width: 700px;
+}
+
+.form-group.greyed {
+    border: none;
+    width:100%;
+    min-width: 700px;
+}
+
+.form-control {
+    padding-left: 20px;
+}
+
+.btn {
+     color: #fff;
+     background-color: #962b29;
+     border-color: #962b29;
+}
+
+.btn-primary:hover {
+     color: #fff;
+     background-color: rgba(180, 51, 46, 0.7);
+     border-color: #962b29;
+}
+
 
 .form-control {
     border: 0;
@@ -12,3 +82,45 @@ span.input-group-addon { min-width: 120px; font-weight: bold; text-align:left }
     -moz-box-shadow: none;
     box-shadow: none;
 }
+
+input  {
+    width: 100%;
+    margin: 5px;
+}
+
+textarea  {
+    width:100%;
+}
+
+.greyed {
+    background-color: #edeeee;
+}
+
+.tabular{
+    width:100%;
+    border:none;
+    border-collapse:collapse;
+}
+
+nav.navbar {
+  background-color: #962b29;
+}
+
+#welcome {
+    color: #fff;
+    background-color: #962b29;
+    font-family:Garamond,serif;
+    font-size: xx-large;
+    align-left;
+    padding:100px;
+}
+
+hr {
+    color:#fff;
+}
+
+
+.nav-tabs {
+    display:none;
+}
+
