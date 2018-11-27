@@ -306,10 +306,6 @@ return $tbl1;
 
         $dd = REDCap::getDataDictionary($module->getProjectId(), 'array');
 
-
-        //preserve the line feeds
-        $q4 = nl2br($final_data['q4']);
-
         $html = <<<EOF
 <head>
 <style>
@@ -354,6 +350,114 @@ EOF;
         $pdf->writeHTML($tbl3, true, false, false, false, '');
 
 return $pdf;
+    }
+
+
+    public static function makeHTMLPage4($record_id, $final_data, $pdf) {
+        global $module;
+
+        $pdf->writeHTMLCell(185, 5, '', '', '<b>Here is what I DO WANT at the <u>end of my life (in the last six months of life)</u>:</b>');
+        $pdf->ln(10);
+
+        $pdf->CheckBox('q9', 5, array(), array(), '1');
+        $pdf->Cell(70, 5, 'I want to be pain free');
+        $pdf->ln(8);
+        $pdf->CheckBox('q9', 5, array(), array(), '2');
+        $pdf->Cell(70, 5, 'I want you to allow me to die gently and naturally');
+        $pdf->ln(8);
+        $pdf->CheckBox('q9', 5, array(), array(), '3');
+        $pdf->Cell(70, 5, 'I want to die at home');
+        $pdf->ln(8);
+        $pdf->CheckBox('q9', 5, array(), array(), '4');
+        $pdf->Cell(70, 5, 'I want hospice care');
+        $pdf->ln(8);
+        $pdf->CheckBox('q9', 5, array(), array(), '99');
+        $pdf->Cell(70, 5, 'Other: Please use the space below to give detailed instructions to your doctors');
+        $pdf->ln(8);
+
+        $pdf->Cell(5,5,'');
+        $pdf->TextField('q9_99_other', 150, 18, array('multiline'=>true, 'lineWidth'=>0, 'borderStyle'=>'none'), array('v'=>'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 'dv'=>'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'));
+        $pdf->Ln(19);
+
+
+        $pdf->ln(10);
+        $pdf->writeHTMLCell(185, 5, '', '', '<b>Here is where I want to spend the last days of my life:</b>');
+
+        $pdf->Ln(10);
+        $pdf->RadioButton('q10', 5, array(), array(), '1', true);
+        $pdf->Cell(70, 5, 'In the hospital');
+        $pdf->Ln(6);
+        $pdf->RadioButton('q10', 5, array(), array(), '2');
+        $pdf->Cell(70, 5, 'At home or in a home-like setting');
+        $pdf->Ln(6);
+
+        $pdf->Ln(10);
+        $pdf->writeHTMLCell(185, 5, '', '', '<b>If my pain and distress are difficult to control, please sedate me (make with sleep with sleep medicines) even if this means that I may not live as long</b>');
+        $pdf->Ln(6);
+
+        $pdf->Ln(10);
+        $pdf->RadioButton('q11', 5, array(), array(), '1', true);
+        $pdf->Cell(70, 5, 'Yes');
+        $pdf->Ln(6);
+        $pdf->RadioButton('q11', 5, array(), array(), '0');
+        $pdf->Cell(70, 5, 'No');
+        $pdf->Ln(6);
+
+        $pdf->Ln(10);
+        $pdf->writeHTMLCell(185, 5, '', '', '<b>Here is what I want to do when my family wants you to do something different than what I want for myself:</b>');
+        $pdf->Ln(6);
+
+        $pdf->Ln(10);
+        $pdf->RadioButton('q12', 5, array(), array(), '1', true);
+        $pdf->Cell(70, 5, 'I am asking you to show them this letter and guide my family to follow my wishes.');
+        $pdf->Ln(10);
+        $pdf->RadioButton('q11', 5, array(), array(), '2');
+        $pdf->Cell(70, 5, 'I want you to override my wishes as my family knows best.');
+        $pdf->Ln(6);
+
+        $pdf->AddPage();
+
+        $pdf->Ln(10);
+        $pdf->writeHTMLCell(185, 5, '', '', '<b>After a person passes away, their organs and tissues (eyes, kidneys, liver, heart, skin etc.) can be donated to help other people who are ill.</b>');
+        $pdf->Ln(6);
+
+        $pdf->Ln(10);
+        $pdf->RadioButton('q13', 5, array(), array(), '1', true);
+        $pdf->Cell(70, 5, 'I do NOT want to donate my organs or tissues after I pass away');
+        $pdf->Ln(10);
+        $pdf->RadioButton('q13', 5, array(), array(), '2');
+        $pdf->Cell(70, 5, ' I do NOT want to decide now. my proxy can decide later.');
+        $pdf->Ln(10);
+        $pdf->RadioButton('q13', 5, array(), array(), '3', true);
+        $pdf->Cell(70, 5, 'I will donate any of my organs and tissues after I pass away');
+        $pdf->Ln(10);
+        $pdf->RadioButton('q13', 5, array(), array(), '4');
+        $pdf->Cell(70, 5, 'I will donate the following organs, tissues only:');
+        $pdf->Ln(10);
+
+        $pdf->Cell(5,5,'');
+        $pdf->TextField('q9_99_other', 150, 18, array('multiline'=>true, 'lineWidth'=>0, 'borderStyle'=>'none'), array('v'=>'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 'dv'=>'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'));
+        $pdf->Ln(19);
+
+        $pdf->Ln(10);
+        $pdf->writeHTMLCell(185, 5, '', '', '<b>Please check below to give permission:</b>');
+        $pdf->Ln(6);
+
+        $pdf->Ln(10);
+        $pdf->RadioButton('q14', 5, array(), array(), '1', true);
+        $pdf->Cell(70, 5, 'My proxy can make funeral arrangements when needed');
+        $pdf->Ln(10);
+
+        $pdf->Ln(10);
+        $pdf->writeHTMLCell(185, 5, '', '', '<b>Please write other detailed instructions (attach extra pages if you need).</b>');
+        $pdf->Ln(10);
+
+        $pdf->Cell(5,5,'');
+        $pdf->TextField('q9_99_other', 150, 45, array('multiline'=>true, 'lineWidth'=>0, 'borderStyle'=>'none'), array('v'=>'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 'dv'=>'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'));
+        $pdf->Ln(19);
+
+        return $pdf;
+
     }
 
     public function decodeRefuse($coded) {

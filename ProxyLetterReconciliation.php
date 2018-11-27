@@ -17,7 +17,7 @@ session_start();
 //$name = "Zaphod Beeblebrox ";
 //$doctor_name = 'Doctor Who';
 
-$image_url = $module->getUrl("images/stanford-healthcre.png",true,true );
+$image_url = $module->getUrl('images/stanford-healthcre.png',true,true );
 
 // HANDLE AJAX POST REQUESTS
 if (!empty($_POST['action'])) {
@@ -471,7 +471,7 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
     switch ($field_type) {
         case "textarea":
             //handle the textarea formats
-            $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$q_label\" name=\"$q_label\" rows=\"5\">$response</textarea><br>";
+            $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$q_label\" name=\"$q_label\" rows=\"4\">$response</textarea><br>";
             break;
         case "descriptive":
             //handle the descriptive formats
@@ -620,7 +620,7 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
             if ($question_num == "q9") {
                 $response_other = $response['q9_99_other'];
 
-                $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$q_label\" name=\"$q_label\" rows=\"5\">$response_other</textarea>";
+                $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$q_label\" name=\"$q_label\" rows=\"3\">$response_other</textarea>";
             }
 
             break;
@@ -667,7 +667,7 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
                 }
                 $q .= '</div>';
                 $q .= '<div class="">';
-                $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$q_label\" name=\"$q_label\" rows=\"5\">$part2</textarea>";
+                $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$q_label\" name=\"$q_label\" rows=\"3\">$part2</textarea>";
                 $q .= '</div>';
             } elseif ($prefix == "q8") {
                 $module->emLog("2PREFIX IS SDF".$prefix);
@@ -700,7 +700,7 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
                     }
                     $q .= '</div>';
                     $q .= '<div class="$grey">';
-                    $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$q_label\" name=\"$q_label\" rows=\"5\">$part2</textarea>";
+                    $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$q_label\" name=\"$q_label\" rows=\"3\">$part2</textarea>";
                     $q .= '</div>';
 
             } else {
@@ -749,7 +749,7 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
                 }
 
                 if ($question_num == "q13") {
-                    $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$q_label\" name=\"$q_label\" rows=\"5\">$q13_other</textarea>";
+                    $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$q_label\" name=\"$q_label\" rows=\"3\">$q13_other</textarea>";
                 }
 
             }
@@ -810,7 +810,7 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
                     $inst_label = $q_label."_inst";
                     $q .= '</div>';
                     $q .= '<div class="">';
-                    $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$inst_label\" name=\"$inst_label\" rows=\"5\">$part2</textarea>";
+                    $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$inst_label\" name=\"$inst_label\" rows=\"3\">$part2</textarea>";
                     $q .= '</div>';
             } else {
 
@@ -833,7 +833,7 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
             break;
         default:
             //what is default?  treat like text area
-            $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$q_label\" name=\"$q_label\" rows=\"5\">$response</textarea>";
+            $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$q_label\" name=\"$q_label\" rows=\"3\">$response</textarea>";
             break;
             break;
 
@@ -845,16 +845,16 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
 function renderNavButtons($previous,$next, $submit, $print_page = null) {
     $str = '<div class="mb-3 group-end">';
     if ($previous) {
-        $str .= '<a class="btn btn-primary btnPrevious">Previous</a>';
+        $str .= '<div class="btn btn-primary btnPrevious">Previous</div>';
     }
     if ($next) {
-        $str .= '<a class="btn btn-primary btnNext">Next</a>';
+        $str .= '<div class="btn btn-primary btnNext">Next</div>';
     }
     if ($submit) {
-        $str .= '<a class="btn btn-primary btnWitness">Review Witness and Signature Form</a>';
+        $str .= '<div class="btn btn-primary btnWitness">Review Witness and Signature Form</div>';
     }
     if ($print_page) {
-        $str .= '<div><a class="btn btn-primary btnPrint">Go to Print Page</a></div>';
+        $str .= '<div class="btn btn-primary btnPrint">Go to Print Page</div>';
     }
     $str .= '</div>';
     return $str;
@@ -937,92 +937,13 @@ function renderAnswers($question_num, $orig, $p1, $p2, $p3, $final, $proxy) {
 
 }
 
-function setupLetterPDFGenerator($record_id) {
-     global $module;
-
-    set_time_limit(0);
-
-    //$pdf = new LetterPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT,true, 'UTF-8', false);
-
-    $pdf = new LetterPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, false, 'ISO-8859-1', false);
-
-    // Set document information dictionary in unicode mode
-    $pdf->SetDocInfoUnicode(true);
-
-    $module->emDebug("LOGO", PDF_HEADER_LOGO);
-    $pdf->SetHeaderData(PDF_HEADER_LOGO, PDF_HEADER_LOGO_WIDTH, 'Stanford What-Matters-Most Letter Directive',null,  array(150,43,40));
-
-    // set header and footer fonts
-    $pdf->setHeaderFont(Array('times', '', 14));
-    $pdf->setFooterFont(Array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
-
-    $pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
-    $pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
-    $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
-
-    $pdf->SetFont('arial', '', 12);
-    $pdf->SetAutoPageBreak(TRUE,PDF_MARGIN_BOTTOM);
-
-    // set image scale factor
-    $pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
-
-    // ---------------------------------------------------------
-    //if record ID is set, get Data for that record
-
-    // Use alternative passing of parameters as an associate array
-    $params = array(
-        'project_id'=>$module->getProjectId(),
-        'return_format' =>'json',
-        //'exportSurveyFields'=>true,
-        //'fields'=>array('dob','record_id'),
-        'events'=>array( $module->getProjectSetting('final-event')),
-        'records'=>array($record_id));
-    $data = REDCap::getData($params);
-
-    //$q = \REDCap::getData($module->getProjectId(), 'json',  array($record_id), null, $module->getProjectSetting('final-event'));
-    $final_data = json_decode($data, true);
-    //$module->emDebug($params,$module->getProjectId(),$module->getProjectSetting('final-event'), $final_data, $record_id, "FINAL DATA");
-
-    // ---------------------------------------------------------
-
-    // set font
-    //$pdf->SetFont('arial', '', 12);
-
-    // add a page
-    $pdf->AddPage();
-
-    //create html for page 1
-    $html = $pdf->makeHTMLPage1($record_id, current($final_data));
-    $pdf->writeHTML($html, true, false, true, false, '');
-
- //create html for page 2
-    $pdf->AddPage();
-    $html = $pdf->makeHTMLPage2($record_id,current($final_data));
-    $pdf->writeHTML($html, true, false, true, false, '');
-
-    //Question 6
-    $q6 = current($final_data)['q6'];
-    $pdf->RadioButton('health_decisions', 5, array(), array(), '1', ($q6 == 1));
-    $pdf->Cell(35, 5, 'Starting right now');
-    $pdf->Ln(6);
-    $pdf->RadioButton('health_decisions', 5, array(), array(), '2', $q6 == 2);
-    $pdf->Cell(35, 5, 'When I am not able to make decisions by myself');
-    $pdf->Ln(6);
-
-    //create html for page 3
-    $pdf->AddPage();
-    $pdf = $pdf->makeHTMLPage3($record_id,current($final_data), $pdf);
-
-    return $pdf;
-}
-
 function sendEmailPDF($record_id, $emails) {
     global $module;
 
     $module->emDebug("Send Email 1");
     //1. generate the PDF file
     if (isset($record_id)) {
-        $pdf = setupLetterPDFGenerator($record_id);
+        $pdf = $module->setupLetter($record_id);
     } else {
         throw new Exception("Email was not sent as the record field is undefined.");
     }

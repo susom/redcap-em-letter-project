@@ -63,15 +63,15 @@
     padding-left: 20px;
 }
 
-.btn {
+.btn-primary, .btn-primary:visited, .btn-primary:active, .btn-primary:link {
      color: #fff;
-     background-color: #962b29;
+     background-color: #962b29 !important;
      border-color: #962b29;
 }
 
 .btn-primary:hover {
      color: #fff;
-     background-color: rgba(180, 51, 46, 0.7);
+     background-color: rgba(190, 54, 49, 0.7);
      border-color: #962b29;
 }
 
@@ -119,6 +119,9 @@ hr {
     color:#fff;
 }
 
+.text-center {
+  text-align: center;
+}
 
 .nav-tabs {
     display:none;
