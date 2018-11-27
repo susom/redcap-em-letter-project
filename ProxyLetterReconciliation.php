@@ -1025,7 +1025,7 @@ function sendEmailPDF($record_id, $emails) {
         $status = array();
         foreach ($emails as $email) {
             $to = $email;
-            $from = 'noreply@stanford.edu';
+            $from = 'no-reply@stanford.edu';
             $subject = "Stanford Letter Project";
             $msg = 'Attached please find a copy of your letter.<br><br>
                --Stanford Letter Project<br><br>';

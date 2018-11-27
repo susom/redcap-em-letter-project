@@ -66,8 +66,22 @@ function setupLetter($record_id) {
     $pdf->writeHTML($html, true, false, true, false, '');
 
     //create html for page 2
-    $html = $pdf->makeHTMLPage2($record_id);
+    $pdf->AddPage();
+    $html = $pdf->makeHTMLPage2($record_id,current($final_data));
     $pdf->writeHTML($html, true, false, true, false, '');
+
+    //Question 6
+    $q6 = current($final_data)['q6'];
+    $pdf->RadioButton('health_decisions', 5, array(), array(), '1', ($q6 == 1));
+    $pdf->Cell(35, 5, 'Starting right now');
+    $pdf->Ln(6);
+    $pdf->RadioButton('health_decisions', 5, array(), array(), '2', $q6 == 2);
+    $pdf->Cell(35, 5, 'When I am not able to make decisions by myself');
+    $pdf->Ln(6);
+
+    //create html for page 3
+    $pdf->AddPage();
+    $pdf = $pdf->makeHTMLPage3($record_id,current($final_data), $pdf);
 
     return $pdf;
 }
