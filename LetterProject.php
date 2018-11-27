@@ -258,7 +258,8 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
         global $module;
 
         $eol = PHP_EOL;
-        $separator = md5(time());
+
+        $module->emDebug("Send Email 5: in SendEmail ");
         //boundary
         $semi_rand = md5(time());
         $mime_boundary = "==Multipart_Boundary_x{$semi_rand}x";
@@ -269,6 +270,7 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
         $headers = "From: "." <".$from.">";
         $headers .= "\nMIME-Version: 1.0\n" . "Content-Type: multipart/mixed;\n" . " boundary=\"{$mime_boundary}\"";
 
+        $module->emDebug("Send Email 6: Created header ");
         //multipart boundary
         $message = "--{$mime_boundary}\n" . "Content-Type: text/html; charset=\"UTF-8\"\n" .
             "Content-Transfer-Encoding: 7bit\n\n" . $msg . "\n\n";
@@ -276,41 +278,13 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
         $message .= $attachment;
         $message .= "--{$mime_boundary}--";
 
-        //send email
-        //$mail = mail($to, $subject, $message, $headers, $returnpath);
-
-/***/
-
-
-/**
-
-        $headers = 'From: <' . $from . '>' . $eol;
-        $headers .= 'MIME-Version: 1.0' . $eol;
-        $headers .= "Content-Type: multipart/mixed; boundary=\"" . $separator . "\"";
-
-//$message = "--".$separator.$eol;
-//$message .= "Content-Transfer-Encoding: 7bit".$eol.$eol;
-        $message .= $msg . $eol;
-
-
-//$message .= "--".$separator.$eol;
-//$message .= "Content-Type: text/html; charset=\"iso-8859-1\"".$eol;
-//$message .= "Content-Transfer-Encoding: 8bit".$eol.$eol;
-
-        $message .= "--" . $separator . $eol;
-//$message .= "Content-Type: application/pdf; name=\"".$fileName."\"".$eol;
-//$message .= "Content-Transfer-Encoding: base64".$eol;
-//$message .= "Content-Disposition: attachment".$eol.$eol;
-        $message .= $attachment . $eol;
-        //$message .= "--" . $separator . "--";
- *
- */
+        $module->emDebug("Send Email 7: Created multipart ");
 
         if (!mail($to, $subject, $message, $headers)) {
             $module->emDebug("Email NOT sent");
             return false;
         }
-        $module->emDebug("Email sent");
+        $module->emDebug("Send Email 7: Email sent");
         return true;
     }
 

@@ -1038,7 +1038,7 @@ function sendEmailPDF($record_id, $emails) {
         throw new Exception("Email was not sent as the email field is undefined.");
     }
 
-    $module->emDebug("Send Email 5: Finished");
+    $module->emDebug("Send Email 8: Finished");
 
     //$module->emDebug("Letter ATtach", $letter_attachment, "ETTER ATTACHB");
     //TODO: check if all status is clear
