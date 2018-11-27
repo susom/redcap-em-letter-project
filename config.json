@@ -25,16 +25,6 @@
         "icon": "gear",
         "url": "ProxyLetterReconciliation.php?NOAUTH"
       },
-            {
-        "name": "Test PDF",
-        "icon": "gear",
-        "url": "TestPDF.php"
-      },
-            {
-        "name": "Test PDF 2",
-        "icon": "gear",
-        "url": "TestPDF2.php"
-      },
       {
         "name": "Get Letter PDF",
         "icon": "gear",

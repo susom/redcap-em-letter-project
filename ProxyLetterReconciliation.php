@@ -1005,16 +1005,19 @@ function setupLetterPDFGenerator($record_id) {
 function sendEmailPDF($record_id, $emails) {
     global $module;
 
-
+    $module->emDebug("Send Email 1");
     //1. generate the PDF file
     if (isset($record_id)) {
         $pdf = setupLetterPDFGenerator($record_id);
     } else {
         throw new Exception("Email was not sent as the record field is undefined.");
     }
+    $module->emDebug("Send Email 2: got pdf");
 
     //2. TODO: setup the name to be Letter with timestamp
     $letter_attachment = $pdf->Output('LetterProject.pdf', 'E');
+
+    $module->emDebug("Send Email 3: got Email attachment");
 
     //3. foreach email
     if (isset($emails)) {
@@ -1025,14 +1028,17 @@ function sendEmailPDF($record_id, $emails) {
             $from = 'noreply@stanford.edu';
             $subject = "Stanford Letter Project";
             $msg = 'Attached please find a copy of your letter.<br><br>
-               --Stanford Letter Project';
+               --Stanford Letter Project<br><br>';
+            $module->emDebug("Send Email 4: Sending Email to ".$email);
             $status[] = $module->sendEmail($to, $from, $subject, $msg, $letter_attachment);
         }
+
 
     } else {
         throw new Exception("Email was not sent as the email field is undefined.");
     }
 
+    $module->emDebug("Send Email 5: Finished");
 
     //$module->emDebug("Letter ATtach", $letter_attachment, "ETTER ATTACHB");
     //TODO: check if all status is clear
