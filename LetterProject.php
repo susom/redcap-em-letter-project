@@ -421,6 +421,22 @@ function setupLetter($record_id) {
     $pdf->AddPage();
     $pdf = $pdf->makeHTMLPage4($record_id,current($final_data), $pdf);
 
+    //create html for page 5
+    $pdf->AddPage();
+    $html5 = $pdf->makeHTMLPage5($record_id,current($final_data), $pdf);
+    $pdf->writeHTML($html5, true, false, true, false, '');
+
+    //create html for page 6n
+    $pdf->AddPage();
+    $html6 = $pdf->makeHTMLPage6($record_id,current($final_data), $pdf);
+    $pdf->writeHTML($html6, true, false, true, false, '');
+
+
+    //create html for page 7
+    $pdf->AddPage();
+    $html7 = $pdf->makeHTMLPage7($record_id,current($final_data), $pdf);
+    $pdf->writeHTML($html7, true, false, true, false, '');
+
     return $pdf;
 }
 

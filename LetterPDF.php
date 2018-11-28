@@ -33,7 +33,7 @@ class LetterPDF extends TCPDF
         global $module;
         $doctor_name = $final_data['ltr_doctor_name'];
 
-        $module->emDebug("DOCTOR name is $doctor_name", nl2br($final_data['q1']), $str);
+        $module->emDebug("DOCTOR name is $doctor_name", nl2br($final_data['q1']));
         $q1 = nl2br($final_data['q1']);
         $q3 = nl2br($final_data['q3']);
         //create some HTML content
@@ -41,7 +41,7 @@ class LetterPDF extends TCPDF
 
 <head>
 <style>
-.cls_section {background-color:#e1e1e1;color:#962b28;}
+.cls_section {background-color:#e1e1e1;color:#962b28;font-size:18pt; font-weight:bold}
 .cls_question {font-weight:bold }
 .cls_example {font-style:italic }
 .cls_response {
@@ -58,24 +58,22 @@ color:#1b1fff;
 </style>
 </head>
 <body>
-<div class="cls_section" style="background-color:#e1e1e1;color:#962b28;">
-<span style="font-size:18pt; font-weight:bold">Part 1:</span><span style="font-size:18pt;font-weight:bold"> Tell Us about What Matters Most to You</span></div>
+<div class="cls_section"><span>Part 1: Tell Us about What Matters Most to You</span></div>
 <div class="cls_question"><span>Dear Doctor {$doctor_name},</span></div>
-<div style="font-weight:bold" class="cls_016"><span class="cls_016">RE: What matters most to me at the end of my life</span></div>
+<div class="cls_question">RE: What matters most to me at the end of my life</span></div>
 <div style="" class="cls_013"><span class="cls_013">I realize how important it is that I communicate my wishes to you and my family. I know that you are very busy. You may find it awkward to talk to me about my end-of-life wishes or you may feel that it is too early for me to have this conversation. So I am writing this letter to clarify what matters most to me.</span></div>
 
-<div style="font-weight:bold"><span class="cls_016">Here is what matters most to me:</span></div>
+<div class="cls_question">Here is what matters most to me:</span></div>
 <div class="cls_example">Examples: Being at home, doing gardening, traveling, going to church, playing with my grandchildren grandchildren</div>
-<div style="border-bottom: 1px solid black; min-width: 100px;" class="cls_response"><span class="cls_013"> {$q1}</span></div>
+<div class="cls_response_4"><span class="cls_013"> {$q1}</span></div>
 
-<div style="position:absolute;left:54.24px;top:421.20px" class="cls_016"><span class="cls_016">Here are my important future life milestones:</span></div>
-<div style="position:absolute;left:54.24px;top:434.88px" class="cls_017"><span class="cls_017">Examples: my 10th wedding anniversary, buying a home, birth of my granddaughter</span></div>
-<div style="text-decoration: underline; white-space: pre;" class="cls_019"><span class="cls_019">1. {$final_data['q2_milestone_1']} </span></div>
-
-<div class="cls_response"><span>2.  {$final_data['q2_milestone_2']}</span></div>
-<div class="cls_response"><span>3.  {$final_data['q2_milestone_3']}</span></div>
-<div class="cls_response_2"><span>4.  {$final_data['q2_milestone_4']}</span></div>
-<div style="position:absolute;left:54.24px;top:577.44px" class="cls_016"><span class="cls_016">Here is how we prefer to handle bad news in my family:</span></div>
+<div class="cls_question"><span>Here are my important future life milestones:</span></div>
+<div class="cls_example"><span>Examples: my 10th wedding anniversary, buying a home, birth of my granddaughter</span></div>
+<div class="cls_response_4"><span>1. {$final_data['q2_milestone_1']} </span></div>
+<div class="cls_response_4"><span>2.  {$final_data['q2_milestone_2']}</span></div>
+<div class="cls_response_4"><span>3.  {$final_data['q2_milestone_3']}</span></div>
+<div class="cls_response_4"><span>4.  {$final_data['q2_milestone_4']}</span></div>
+<div class="cls_question">Here is how we prefer to handle bad news in my family:</span></div>
 <div class="cls_example"><span class="cls_example">Examples: We talk openly about it, we shield the children from it, we do not like to talk about it, we do not tell the patient</span></div>
 <div class="cls_response_4">{$q3}</span></div>
 </body>
@@ -314,7 +312,8 @@ return $tbl1;
     .cls_example {font-style:italic }
     .cls_red_header {   
     color: #962b28;
-      size: large}
+    font-size: large;
+    }
     .cls_response {
       border-bottom: 1px solid black;
       min-width: 100px;
@@ -359,24 +358,25 @@ return $pdf;
         $pdf->writeHTMLCell(185, 5, '', '', '<b>Here is what I DO WANT at the <u>end of my life (in the last six months of life)</u>:</b>');
         $pdf->ln(10);
 
-        $pdf->CheckBox('q9', 5, array(), array(), '1');
+        $pdf->CheckBox('q9', 5, $final_data['q9___1'] == 1, array(), array());
         $pdf->Cell(70, 5, 'I want to be pain free');
         $pdf->ln(8);
-        $pdf->CheckBox('q9', 5, array(), array(), '2');
+        $pdf->CheckBox('q9', 5,  $final_data['q9___2'] == 1, array(), array());
         $pdf->Cell(70, 5, 'I want you to allow me to die gently and naturally');
         $pdf->ln(8);
-        $pdf->CheckBox('q9', 5, array(), array(), '3');
+        $pdf->CheckBox('q9', 5, $final_data['q9___3'] == 1, array(), array());
         $pdf->Cell(70, 5, 'I want to die at home');
         $pdf->ln(8);
-        $pdf->CheckBox('q9', 5, array(), array(), '4');
+        $pdf->CheckBox('q9', 5, $final_data['q9___4'] == 1, array(), array());
         $pdf->Cell(70, 5, 'I want hospice care');
         $pdf->ln(8);
-        $pdf->CheckBox('q9', 5, array(), array(), '99');
+        $pdf->CheckBox('q9', 5, $final_data['q9___99'] == 1, array(), array());
+
         $pdf->Cell(70, 5, 'Other: Please use the space below to give detailed instructions to your doctors');
         $pdf->ln(8);
 
         $pdf->Cell(5,5,'');
-        $pdf->TextField('q9_99_other', 150, 18, array('multiline'=>true, 'lineWidth'=>0, 'borderStyle'=>'none'), array('v'=>'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 'dv'=>'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'));
+        $pdf->TextField('q9_99_other', 150, 18, array('multiline'=>true, 'lineWidth'=>0, 'borderStyle'=>'none'), array('v'=>$final_data['q9_99_other']));
         $pdf->Ln(19);
 
 
@@ -384,10 +384,10 @@ return $pdf;
         $pdf->writeHTMLCell(185, 5, '', '', '<b>Here is where I want to spend the last days of my life:</b>');
 
         $pdf->Ln(10);
-        $pdf->RadioButton('q10', 5, array(), array(), '1', true);
+        $pdf->RadioButton('q10', 5, array(), array(), '1', $final_data['q10'] == 1 ? true : false);
         $pdf->Cell(70, 5, 'In the hospital');
         $pdf->Ln(6);
-        $pdf->RadioButton('q10', 5, array(), array(), '2');
+        $pdf->RadioButton('q10', 5, array(), array(), '2', $final_data['q10'] == 2 ? true : false);
         $pdf->Cell(70, 5, 'At home or in a home-like setting');
         $pdf->Ln(6);
 
@@ -396,10 +396,10 @@ return $pdf;
         $pdf->Ln(6);
 
         $pdf->Ln(10);
-        $pdf->RadioButton('q11', 5, array(), array(), '1', true);
+        $pdf->RadioButton('q11', 5, array(), array(), '1',  $final_data['q11'] == 1 ? true : false);
         $pdf->Cell(70, 5, 'Yes');
         $pdf->Ln(6);
-        $pdf->RadioButton('q11', 5, array(), array(), '0');
+        $pdf->RadioButton('q11', 5, array(), array(), '0', $final_data['q11'] == 0 ? true : false);
         $pdf->Cell(70, 5, 'No');
         $pdf->Ln(6);
 
@@ -408,10 +408,10 @@ return $pdf;
         $pdf->Ln(6);
 
         $pdf->Ln(10);
-        $pdf->RadioButton('q12', 5, array(), array(), '1', true);
+        $pdf->RadioButton('q12', 5, array(), array(), '1',  $final_data['q12'] == 1 ? true : false);
         $pdf->Cell(70, 5, 'I am asking you to show them this letter and guide my family to follow my wishes.');
         $pdf->Ln(10);
-        $pdf->RadioButton('q11', 5, array(), array(), '2');
+        $pdf->RadioButton('q11', 5, array(), array(), '2',  $final_data['q12'] == 2 ? true : false);
         $pdf->Cell(70, 5, 'I want you to override my wishes as my family knows best.');
         $pdf->Ln(6);
 
@@ -422,29 +422,28 @@ return $pdf;
         $pdf->Ln(6);
 
         $pdf->Ln(10);
-        $pdf->RadioButton('q13', 5, array(), array(), '1', true);
+        $pdf->RadioButton('q13', 5, array(), array(), '1',  $final_data['q13'] == 1 ? true : false);
         $pdf->Cell(70, 5, 'I do NOT want to donate my organs or tissues after I pass away');
         $pdf->Ln(10);
-        $pdf->RadioButton('q13', 5, array(), array(), '2');
+        $pdf->RadioButton('q13', 5, array(), array(), '2',  $final_data['q13'] == 2 ? true : false);
         $pdf->Cell(70, 5, ' I do NOT want to decide now. my proxy can decide later.');
         $pdf->Ln(10);
-        $pdf->RadioButton('q13', 5, array(), array(), '3', true);
+        $pdf->RadioButton('q13', 5, array(), array(), '3',  $final_data['q13'] == 3 ? true : false);
         $pdf->Cell(70, 5, 'I will donate any of my organs and tissues after I pass away');
         $pdf->Ln(10);
-        $pdf->RadioButton('q13', 5, array(), array(), '4');
+        $pdf->RadioButton('q13', 5, array(), array(), '4',  $final_data['q13'] == 4 ? true : false);
         $pdf->Cell(70, 5, 'I will donate the following organs, tissues only:');
         $pdf->Ln(10);
 
         $pdf->Cell(5,5,'');
-        $pdf->TextField('q9_99_other', 150, 18, array('multiline'=>true, 'lineWidth'=>0, 'borderStyle'=>'none'), array('v'=>'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 'dv'=>'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'));
+        $pdf->TextField('q9_99_other', 150, 18, array('multiline'=>true, 'lineWidth'=>0, 'borderStyle'=>'none'), array('v'=> $final_data['q13_donate_following']));
         $pdf->Ln(19);
 
         $pdf->Ln(10);
         $pdf->writeHTMLCell(185, 5, '', '', '<b>Please check below to give permission:</b>');
-        $pdf->Ln(6);
 
         $pdf->Ln(10);
-        $pdf->RadioButton('q14', 5, array(), array(), '1', true);
+        $pdf->CheckBox('q14', 5, $final_data['q14___1'] == 1, array(), array());
         $pdf->Cell(70, 5, 'My proxy can make funeral arrangements when needed');
         $pdf->Ln(10);
 
@@ -452,12 +451,267 @@ return $pdf;
         $pdf->writeHTMLCell(185, 5, '', '', '<b>Please write other detailed instructions (attach extra pages if you need).</b>');
         $pdf->Ln(10);
 
-        $pdf->Cell(5,5,'');
-        $pdf->TextField('q9_99_other', 150, 45, array('multiline'=>true, 'lineWidth'=>0, 'borderStyle'=>'none'), array('v'=>'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 'dv'=>'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'));
+        $pdf->TextField('q9_99_other', 150, 45, array('multiline'=>true, 'lineWidth'=>0, 'borderStyle'=>'none'), array('v'=>$final_data['q15']));
         $pdf->Ln(19);
 
         return $pdf;
 
+    }
+
+    public static function makeHTMLPage5($record_id, $final_data) {
+
+        //preserve the line feeds
+        $q4 = nl2br($final_data['q4']);
+
+
+
+        $html = <<<EOF
+<head>
+<style>
+    .cls_section {background-color:#e1e1e1;color:#962b28;font-size:18pt; font-weight:bold}
+    .cls_question {font-weight:bold }
+    .cls_example {font-style:italic }
+    .cls_response {
+      border-bottom: 1px solid black;
+      min-width: 100px;
+    }
+.cls_response_2 {
+text-decoration: underline; 
+white-space: pre;
+}
+.cls_response_4 {
+color:#1b1fff;
+}
+    .cls_grey_bkgd {background-color:#e1e1e1;font-weight:bold}
+</style>
+</head>
+<body>
+<div class="cls_section">
+<span> Part 4: Sign the Form and have two witnesses co-sign</span></div>
+
+<div class="">I cancel any prior Power of Attorney for Health Care or Natural Death Act Declaration. My proxy and others may use copies of this document as though they were originals.</div>
+<div class="cls_question">Sign your name and write the date:</div><br>
+<table border="0" cellpadding="2" cellspacing="2" nobr="true">
+<tr>
+<td colspan="6" class="cls_response"></td>
+</tr>
+  <tr>
+  <td colspan="3">Sign your name: <span class="cls_response_4"> {$final_data['patient_signature']}</span></td>
+  <td colspan="3">Date: <span class="cls_response_4"> {$final_data['patient_signdate']}</span></td>  
+ </tr>
+ <tr>
+<td colspan="6" class="cls_response"><span class="cls_response_4"> {$final_data['patient_name']}</span></td>
+</tr>
+ <tr>
+  <td colspan="6">Print your name: </td>
+ </tr> 
+ <tr>
+  <td colspan="6">Address: <span class="cls_response_4"> {$final_data['patient_address']}</span></td>
+ </tr>
+ <tr>
+  <td colspan="2">City: <span class="cls_response_4"> {$final_data['patient_city']}</span></td>
+  <td colspan="2">State: <span class="cls_response_4"> {$final_data['patient_city']}</span></td>
+  <td colspan="2">Zip: <span class="cls_response_4"> {$final_data['patient_city']}</span></td>
+ </tr> 
+</table>
+<br>
+<br>
+<div class="cls_grey_bkgd pt-lg-5"><span>NOTE: If you are unable to sign, but ARE able to talk about what matters most for your
+ health care an adult may sign your name with you present, asking them to sign for you
+ </span></div>
+ <br>
+ <div>Name and signature of adult signing my name in my presence and at my direction:</div>
+ <br>
+<table border="0" cellpadding="2" cellspacing="2" nobr="true">
+  <tr>
+  <td colspan="2" class="cls_response">{$final_data['signature_adult']} </td>
+  <td colspan="3" class="cls_response"><span class="cls_response_4"> {$final_data['adult_signature']}</span></td>
+  <td colspan="1" class="cls_response"><span class="cls_response_4"> {$final_data['adult_signdate']}</span></td>
+ </tr>
+  <tr>
+  <td colspan="2">Name:</td>
+  <td colspan="3">Signature:</td>
+  <td colspan="1">Date: </td>
+ </tr>
+  <tr>
+  
+ </tr> 
+</table>
+</body>
+EOF;
+
+        return $html;
+    }
+
+
+    public static function makeHTMLPage6($record_id, $final_data) {
+
+        $html = <<<EOF
+<head>
+<style>
+    .cls_section {background-color:#e1e1e1;color:#962b28;font-size:18pt; font-weight:bold}
+    .cls_question {font-weight:bold }
+    .cls_example {font-style:italic }
+    .cls_response {
+      border-bottom: 1px solid black;
+      min-width: 100px;
+    }
+.cls_response_2 {
+text-decoration: underline; 
+white-space: pre;
+}
+.cls_response_4 {
+color:#1b1fff;
+}
+    .cls_grey_bkgd {background-color:#e1e1e1;font-weight:bold}
+</style>
+</head>
+<body>
+<div class="cls_question">Have your witnesses sign their names and write the date:</div><br>
+<div class="cls_grey_bkgd pt-lg-5"><span>Statement of Witnesses:
+ </span></div>
+ <br>
+ <div class="">By signing, I promise that ____________________________________ signed this form.</div>
+ <div class="pt-1">
+ I am 18 years of age or older and I promise that:
+<ul>
+  <li>I know this person or they could prove who they were</li>
+    <li>This person was thinking clearly and was not forced to sign this document.</li>
+  <li>I am not their medical decision maker</li>
+  <li>I am not providing health care for this person</li>
+  <li>I do not work for this person’s health care provider</li>
+  <li>I do not work for where they live (e.g. their nursing home if applicable)</li>
+  </ul>
+</div>
+<div class="cls_question">Witness #1</div><br>
+<table border="0" cellpadding="2" cellspacing="2" nobr="true">
+
+ <tr>
+<td colspan="6" class="cls_response"><span class="cls_response_4"> {$final_data['witness1_name']}</span></td>
+</tr>
+ <tr>
+  <td colspan="6">Print your name: </td>
+ </tr> 
+ <tr>
+  <td colspan="6">Address: <span class="cls_response_4"> {$final_data['witness1_address']}</span></td>
+ </tr>
+ <tr>
+  <td colspan="2">City: <span class="cls_response_4"> {$final_data['witness1_city']}</span></td>
+  <td colspan="2">State: <span class="cls_response_4"> {$final_data['witness1_city']}</span></td>
+  <td colspan="2">Zip: <span class="cls_response_4"> {$final_data['witness1_city']}</span></td>
+ </tr> 
+<tr>
+  <td colspan="4" class="cls_response"><span class="cls_response_4"> {$final_data['witness1_signature']}</span></td>
+  <td colspan="2" class="cls_response"><span class="cls_response_4"> {$final_data['witness1_signdate']}</span></td>
+ </tr>
+  <tr>
+  <td colspan="4">Signature:</td>
+  <td colspan="2">Date: </td>
+ </tr> 
+</table>
+<br>
+<div class="cls_question">Witness #2</div><br>
+<table border="0" cellpadding="2" cellspacing="2" nobr="true">
+
+ <tr>
+<td colspan="6" class="cls_response"><span class="cls_response_4"> {$final_data['witness2_name']}</span></td>
+</tr>
+ <tr>
+  <td colspan="6">Print your name: </td>
+ </tr> 
+ <tr>
+  <td colspan="6">Address: <span class="cls_response_4"> {$final_data['witness2_address']}</span></td>
+ </tr>
+ <tr>
+  <td colspan="2">City: <span class="cls_response_4"> {$final_data['witness2_city']}</span></td>
+  <td colspan="2">State: <span class="cls_response_4"> {$final_data['witness2_city']}</span></td>
+  <td colspan="2">Zip: <span class="cls_response_4"> {$final_data['witness2_city']}</span></td>
+ </tr> 
+<tr>
+  <td colspan="4" class="cls_response"><span class="cls_response_4"> {$final_data['witness2_signature']}</span></td>
+  <td colspan="2" class="cls_response"><span class="cls_response_4"> {$final_data['witness2_signdate']}</span></td>
+ </tr>
+  <tr>
+  <td colspan="4">Signature:</td>
+  <td colspan="2">Date: </td>
+ </tr> 
+</table>
+
+</body>
+EOF;
+
+        return $html;
+    }
+
+  public static function makeHTMLPage7($record_id, $final_data) {
+
+        $html = <<<EOF
+<head>
+<style>
+    .cls_section {background-color:#e1e1e1;color:#962b28;font-size:18pt; font-weight:bold}
+    .cls_question {font-weight:bold }
+    .cls_example {font-style:italic }
+    .cls_response {
+      border-bottom: 1px solid black;
+      min-width: 100px;
+    }
+.cls_response_2 {
+text-decoration: underline; 
+white-space: pre;
+}
+.cls_response_4 {
+color:#1b1fff;
+}
+    .cls_grey_bkgd {background-color:#e1e1e1;font-weight:bold}
+</style>
+</head>
+<body>
+
+<div class="cls_grey_bkgd pt-lg-5"><span>At least one of the above witnesses must also sign the following declaration.
+ </span></div>
+ <br>
+ <div class="pt-1">I also promise I am not related to the person signing this What Matters Most letter directive by blood, marriage, or adoption, and to the best of my knowledge, I am not entitled to any of their money or property after they die.</div>
+<table border="0" cellpadding="2" cellspacing="2" nobr="true">
+ <tr>
+<td colspan="6" class="cls_response"><span class="cls_response_4"> {$final_data['declaration_signature']}</span></td>
+</tr>
+ <tr>
+  <td colspan="6">Print your name: </td>
+ </tr>
+ </table> 
+ <br>
+ <div class="cls_grey_bkgd pt-lg-5"><span>Skilled Nursing Facility -- Special Witness Requirement:
+ </span></div>
+<div class="pt-1">I further declare under penalty of perjury under the laws of the State of California that I am a patient advocate or ombudsman as designated by the State Department of Aging and am serving as a witness as required by Probate Code 4675.</div><br>
+<table border="0" cellpadding="2" cellspacing="2" nobr="true">
+<tr>
+  <td colspan="4" class="cls_response"><span class="cls_response_4"> {$final_data['specialwitness_name']}</span></td>
+  <td colspan="2" class="cls_response"><span class="cls_response_4"> {$final_data['specialwitness_title']}</span></td>
+ </tr>
+  <tr>
+  <td colspan="4">Name:</td>
+  <td colspan="2">Title: </td>
+ </tr> 
+ <tr>
+  <td colspan="6">Address: <span class="cls_response_4"> {$final_data['specialwitness_address']}</span></td>
+ </tr>
+ <tr>
+  <td colspan="4" class="cls_response"><span class="cls_response_4"> {$final_data['specialwitness_signature']}</span></td>
+  <td colspan="2" class="cls_response"><span class="cls_response_4"> {$final_data['specialwitness_signdate']}</span></td>
+ </tr>
+  <tr>
+  <td colspan="4">Signature:</td>
+  <td colspan="2">Date: </td>
+ </tr> 
+ <tr>
+  <td colspan="4">State of California County of <span class="cls_response_4"> {$final_data['county']} </span></td>
+</tr>
+</table>
+
+</body>
+EOF;
+
+        return $html;
     }
 
     public function decodeRefuse($coded) {
