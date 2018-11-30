@@ -66,7 +66,7 @@ namespace Stanford\LetterProject;
 
 </head>
 <body>
-    <div class="container">
+
         <nav class="navbar navbar-expand navbar-dark">
 
             <span class="navbar-brand mb-0 h1 float-left">Letter Project</span>
@@ -80,6 +80,7 @@ namespace Stanford\LetterProject;
             </div>
 
         </nav>
+        <div class="container">
     <div>
 
 

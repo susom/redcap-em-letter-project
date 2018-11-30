@@ -10,8 +10,6 @@ namespace Stanford\LetterProject;
 
 
 use \REDCap as REDCap;
-use Message;
-use PHPMailer\PHPMailer\PHPMailer;
 
 
 class LetterProject extends \ExternalModules\AbstractExternalModule
@@ -19,17 +17,6 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
 
     public static $config;
 
-//
-//    function __construct() {
-//        parent::__construct();
-//        //self::$config['log_file'] = '/tmp/letter_project.log';
-//
-//        // Load the config if in project context
-//        if (isset($_GET['pid'])) {
-//            $json_config = $this->getConfigAsString();
-//            self::$config = json_decode($json_config,true);
-//        }
-//    }
 
     function hook_survey_complete($project_id, $record = NULL, $instrument, $event_id, $group_id, $survey_hash, $response_id, $repeat_instance)
     {
@@ -72,70 +59,40 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
             </script>
             <?php
 
-
-//            redirect($hash_url);
-
-
         }
 
-//        $this->setHash($project_id, $record, $instrument);
-//
-//        exit();
     }
 
     function hook_save_record($project_id, $record = NULL, $instrument, $event_id, $group_id = NULL, $survey_hash = NULL, $response_id = NULL, $repeat_instance = 1)
     {
         //if this is the original letter in , then save it to the final letter
         if ($event_id = $this->getProjectSetting('first-event')) {
-            $this->emDebug("FIRST EVENT: this is the $instrument and $event_id vs " .
-                $this->getProjectSetting('first-event'));
-        }
 
-        if ($event_id = $this->getProjectSetting('final-event')) {
-            $this->emDebug("FINAL EVENT: this is the $instrument and $event_id vs " .
-                $this->getProjectSetting('first-event'));
-        }
+            if ($instrument == $this->getProjectSetting('starting-survey')) {
 
+                //set the Hash in the first form
+                $this->emDebug("FIRST EVENT: STARTING SURVEY  SET HASH : $instrument and event: $event_id");
+                $this->setHash($project_id, $record, $instrument);
 
-        //if this is the original letter in , then save it to the final letter
-        if ($event_id == $this->getProjectSetting('first-event') &&
-            ($instrument == $this->getProjectSetting('letter-survey'))) {
+            } else {
 
-            $this->emDebug("FIRST EVENT: this is the right instrument: $instrument and event: $event_id");
-            $this->copyToFinal($project_id, $record, $instrument, $event_id);
+                $this->emDebug("FIRST EVENT: COPYING OVER SURVEY: $instrument and event: $event_id");
+                $this->copyToFinal($project_id, $record, $instrument, $event_id);
 
-            //set the Hash in the first form
-            $this->emDebug("Starting Save Record", $instrument);
-            $this->setHash($project_id, $record, $instrument);
+            }
 
         }
-
 
     }
 
-
-    public function getHash($record, $hash_field, $hash_field_event)
-    {
-
-        $this->emDebug("Locating hash for this record: " . $record);
-        $get_fields = array(
-            REDCap::getRecordIdField(),
-            $hash_field
-        );
-        $event_name = REDCap::getEventNames(true, false, $hash_field_event);
-        $filter = "[" . $event_name . "][" . $hash_field . "] = '$phone'";
-
-
-        $records = REDCap::getData('array', $record, $get_fields, null, null, false, false, false, $filter);
-        //$this->emDebug($filter, $records, $project_id, $pid, $filter, $event_name);
-
-        // return record_id or false
-        reset($records);
-        $first_key = key($records);
-        return ($first_key);
-    }
-
-
+    /**
+     *
+     * Only copies if the form is not completed.
+     * @param $project_id
+     * @param $record
+     * @param $instrument
+     * @param $event_id
+     */
     public function copyToFinal($project_id, $record, $instrument, $event_id)
     {
         $form_complete_field = $instrument . "_complete";
@@ -171,12 +128,10 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
                 $redcap_event_name = REDCap::getEventNames(true, false, $this->getProjectSetting('final-event'));
 
                 $f_result['redcap_event_name'] = $redcap_event_name;
-                $save_data = array_merge($id_array, $f_result);
-
 
                 //first form is complete, do the migration
                 $q = REDCap::saveData('json', json_encode(array($f_result)));
-                $this->emLog($f_result, "xxCurrent FIRST Record", $q);
+                //$this->emDebug($f_result, "xxCurrent FIRST Record", $q);
             }
 
         }
@@ -256,8 +211,6 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
     public function sendEmail($to, $from, $subject, $msg, $attachment)
     {
         global $module;
-
-        $eol = PHP_EOL;
 
         $module->emDebug("Send Email 5: in SendEmail ");
         //boundary
