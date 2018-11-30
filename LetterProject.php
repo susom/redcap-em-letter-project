@@ -266,7 +266,7 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
 
         $filter = "[" . $event . "][" . $code_field . "] = '$code'";
         $get_fields = array(REDCap::getRecordIdField());
-        $this->emLog($filter, "FILTER");
+        $this->emDebug( "FILTER:".$filter);
 
         //passing in project_id causes getData to fail
         $q = REDCap::getData('json', NULL, $get_fields, $event,
@@ -397,7 +397,7 @@ function setupLetter($record_id) {
     {
         if (isset($_SESSION['msg']) && !empty($_SESSION['msg'])) {
             $html = "
-            <div id='session-message' class='alert alert-info text-center fade in' data-dismiss='alert'>
+            <div id='session-message' class='alert alert-info text-center in' data-dismiss='alert'>
                 <p><strong>" . $_SESSION['msg'] . "</strong></p>
             </div>
         ";

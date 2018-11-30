@@ -40,13 +40,14 @@ namespace Stanford\LetterProject;
 <body>
 
 <div class='container'>
-    <div class="logo"></div>
-
     <div class="row">
         <div class="col-sm-12 col-md-12 col-xs-12">
             <?php echo LetterProject::getSessionMessage() ?>
         </div>
     </div>
+
+    <div class="logo"></div>
+
     <div class="pt-lg-5">
         <h1 class="text-center">Stanford Letter Project</h1>
     </div>
