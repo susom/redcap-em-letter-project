@@ -10,7 +10,9 @@ namespace Stanford\LetterProject;
 
 
 use \REDCap as REDCap;
-
+require("RestCallRequest.php");
+//define('API_URL','https://redcap.stanford.edu/api/');
+define('API_URL','http://127.0.0.1/api/');
 
 class LetterProject extends \ExternalModules\AbstractExternalModule
 {
@@ -208,6 +210,135 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
     }
 
 
+    public function getFileData($record) {
+        $this->emDebug("THIS IS EDOC_PATH". EDOC_PATH);
+        $this->emDebug("THIS IS EDOC_PATH". $edoc_path);
+
+        # Get current file fields (we don't want to include file fields that were deleted from the dictionary)
+        $file_fields = array();
+        foreach (REDCap::getFieldNames() as $field) {
+            if (REDCap::getFieldType($field) == 'file') $file_fields[] = $field;
+        }
+        if (!empty($file_fields)) {
+            $this->emDebug("No fields of type 'field' in this project.");
+        }
+        $this->emDebug($file_fields);
+
+        # Get doc_id's data for file fields
+        $docs = array();
+        $file_data = REDCap::getData('array',$record,$file_fields);
+        foreach ($file_data as $id=>$record) {
+            foreach($record as $event=>$fields) {
+                foreach ($fields as $field_name=>$doc_id) {
+                    if (!empty($doc_id)) {
+                        $docs[$doc_id] = array('pid'=>$project_id, 'record'=>$id, 'field_name'=>$field_name);
+                        if (REDCap::isLongitudinal()) {
+                            $docs[$doc_id]['event_id'] = $event;
+                            $docs[$doc_id]['event_name'] = REDCap::getEventNames(false,false,$event);
+                            $docs[$doc_id]['unique_event_name'] = REDCap::getEventNames(true,false,$event);
+                        }
+                    }
+                }
+            }
+        }
+
+        $this->emDebug($file_data);
+        $this->emDebug($docs);
+
+        return $docs;
+    }
+
+    public function uploadFileData($record, $docs, $event) {
+        $temp_file = "../../temp/copy_file.tmp";
+        file_put_contents($temp_file, ' foo bar');
+
+        //iterate throught the efiles for this record and upload them into the same field name for the passed in event
+        foreach ($docs as $docnum => $deets) {
+
+
+            $data = array();
+            //check if the right record
+            if ($deets['record'] != $record) {
+                $this->emDebug("Wrong RECORD!". $deets['record'] . ' vs ' . $record);
+                continue;
+            }
+
+            $event_name = REDCap::getEventNames(true, false, $event);
+            $this->emDebug($deets,"moving ".$deets['field_name'] . " from ". $deets['unique_event_name'] . " to " . $event_name);
+
+            $data = array(
+                'token' => $this->getProjectSetting('api-token'),
+                'content' => 'file',
+                'action' => 'export',
+                'record' => $record,
+                'field' => $deets['field_name'],
+                'event' => $deets['unique_event_name'],
+                'returnFormat' => 'json'
+            );
+
+            $request = new RestCallRequest(API_URL, 'POST', $data);
+            $request->execute();
+            $request_info = $request->getResponseInfo();
+            $this->emDebug($request_info);
+
+        $content_type = $request_info['content_type'];
+        //print "<pre>content_type:" . print_r($content_type,true) . "</pre>";
+        $content_type = explode(";", $content_type);
+        $mime = $content_type[0];
+        $name_raw = $content_type[1];
+        $re = "/.*\\\"(.*)\\\"/";
+        preg_match($re, $name_raw, $matches);
+        //print "<pre>Matches: " . print_r($matches,true). "</pre>";
+        $name_original = isset($matches[1]) ? $matches[1] : "file";
+
+        file_put_contents($temp_file, $request->getResponseBody());
+        $this->emDebug($name_original, $mime);
+
+        $curlFile = (function_exists('curl_file_create') ? curl_file_create($temp_file, $mime,  $name_original) : "@$temp_file");
+
+$fields = array(
+    'token' => $this->getProjectSetting('api-token'),
+    'content' => 'file',
+    'action' => 'import',
+    'record' => $record,
+    'field' => $deets['field_name'],
+    'event' => $event_name,
+    'file' => $curlFile,
+    'returnFormat' => 'json'
+);
+
+$ch = curl_init();
+
+curl_setopt($ch, CURLOPT_URL, API_URL);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE); // Set to TRUE for production use
+curl_setopt($ch, CURLOPT_VERBOSE, 0);
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+curl_setopt($ch, CURLOPT_AUTOREFERER, true);
+curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
+curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
+
+$output = curl_exec($ch);
+
+curl_close($ch);
+
+            $this->emDebug($output);
+
+
+            $save_data = array(
+              REDCap::getRecordIdField() => $record,
+                'redcap_event_name'      => $event_name,
+                $deets['field_name']     => 'foo'
+            );
+        }
+
+
+    }
+
+
+
     public function sendEmail($to, $from, $subject, $msg, $attachment)
     {
         global $module;
@@ -306,7 +437,7 @@ function setupLetter($record_id) {
     // Set document information dictionary in unicode mode
     $pdf->SetDocInfoUnicode(true);
 
-    $module->emDebug("LOGO", PDF_HEADER_LOGO);
+    //$module->emDebug("LOGO", PDF_HEADER_LOGO);
     $pdf->SetHeaderData(PDF_HEADER_LOGO, PDF_HEADER_LOGO_WIDTH, 'Stanford What-Matters-Most Letter Directive', null, array(150, 43, 40));
 
     // set header and footer fonts
