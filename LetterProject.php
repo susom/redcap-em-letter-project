@@ -1,23 +1,42 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: jael
- * Date: 1/9/18
- * Time: 8:51 AM
- */
 
 namespace Stanford\LetterProject;
 
 
 use \REDCap as REDCap;
-require("RestCallRequest.php");
-//define('API_URL','https://redcap.stanford.edu/api/');
-define('API_URL','http://127.0.0.1/api/');
 
 class LetterProject extends \ExternalModules\AbstractExternalModule
 {
 
     public static $config;
+
+
+
+    function redcap_survey_page_top($project_id, $record, $instrument, $event_id, $group_id, $survey_hash, $response_id, $repeat_instance)
+    {
+        //request from VJ to enlarge resize font in survey top right corner
+         //$this->emDebug("Starting redcap_survey_page_top", $instrument);
+
+        ?>
+
+        <style>
+
+            #changeFont {
+                font-size: 20px;
+            }
+
+            .increaseFont img {
+                width: 40px;
+            }
+
+            .decreaseFont img {
+                width: 40px;
+            }
+
+        </style>
+        <?php
+
+    }
 
 
     function hook_survey_complete($project_id, $record = NULL, $instrument, $event_id, $group_id, $survey_hash, $response_id, $repeat_instance)
@@ -210,133 +229,6 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
     }
 
 
-    public function getFileData($record) {
-        $this->emDebug("THIS IS EDOC_PATH". EDOC_PATH);
-        $this->emDebug("THIS IS EDOC_PATH". $edoc_path);
-
-        # Get current file fields (we don't want to include file fields that were deleted from the dictionary)
-        $file_fields = array();
-        foreach (REDCap::getFieldNames() as $field) {
-            if (REDCap::getFieldType($field) == 'file') $file_fields[] = $field;
-        }
-        if (!empty($file_fields)) {
-            $this->emDebug("No fields of type 'field' in this project.");
-        }
-        $this->emDebug($file_fields);
-
-        # Get doc_id's data for file fields
-        $docs = array();
-        $file_data = REDCap::getData('array',$record,$file_fields);
-        foreach ($file_data as $id=>$record) {
-            foreach($record as $event=>$fields) {
-                foreach ($fields as $field_name=>$doc_id) {
-                    if (!empty($doc_id)) {
-                        $docs[$doc_id] = array('pid'=>$project_id, 'record'=>$id, 'field_name'=>$field_name);
-                        if (REDCap::isLongitudinal()) {
-                            $docs[$doc_id]['event_id'] = $event;
-                            $docs[$doc_id]['event_name'] = REDCap::getEventNames(false,false,$event);
-                            $docs[$doc_id]['unique_event_name'] = REDCap::getEventNames(true,false,$event);
-                        }
-                    }
-                }
-            }
-        }
-
-        $this->emDebug($file_data);
-        $this->emDebug($docs);
-
-        return $docs;
-    }
-
-    public function uploadFileData($record, $docs, $event) {
-        $temp_file = "../../temp/copy_file.tmp";
-        file_put_contents($temp_file, ' foo bar');
-
-        //iterate throught the efiles for this record and upload them into the same field name for the passed in event
-        foreach ($docs as $docnum => $deets) {
-
-
-            $data = array();
-            //check if the right record
-            if ($deets['record'] != $record) {
-                $this->emDebug("Wrong RECORD!". $deets['record'] . ' vs ' . $record);
-                continue;
-            }
-
-            $event_name = REDCap::getEventNames(true, false, $event);
-            $this->emDebug($deets,"moving ".$deets['field_name'] . " from ". $deets['unique_event_name'] . " to " . $event_name);
-
-            $data = array(
-                'token' => $this->getProjectSetting('api-token'),
-                'content' => 'file',
-                'action' => 'export',
-                'record' => $record,
-                'field' => $deets['field_name'],
-                'event' => $deets['unique_event_name'],
-                'returnFormat' => 'json'
-            );
-
-            $request = new RestCallRequest(API_URL, 'POST', $data);
-            $request->execute();
-            $request_info = $request->getResponseInfo();
-            $this->emDebug($request_info);
-
-        $content_type = $request_info['content_type'];
-        //print "<pre>content_type:" . print_r($content_type,true) . "</pre>";
-        $content_type = explode(";", $content_type);
-        $mime = $content_type[0];
-        $name_raw = $content_type[1];
-        $re = "/.*\\\"(.*)\\\"/";
-        preg_match($re, $name_raw, $matches);
-        //print "<pre>Matches: " . print_r($matches,true). "</pre>";
-        $name_original = isset($matches[1]) ? $matches[1] : "file";
-
-        file_put_contents($temp_file, $request->getResponseBody());
-        $this->emDebug($name_original, $mime);
-
-        $curlFile = (function_exists('curl_file_create') ? curl_file_create($temp_file, $mime,  $name_original) : "@$temp_file");
-
-$fields = array(
-    'token' => $this->getProjectSetting('api-token'),
-    'content' => 'file',
-    'action' => 'import',
-    'record' => $record,
-    'field' => $deets['field_name'],
-    'event' => $event_name,
-    'file' => $curlFile,
-    'returnFormat' => 'json'
-);
-
-$ch = curl_init();
-
-curl_setopt($ch, CURLOPT_URL, API_URL);
-curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE); // Set to TRUE for production use
-curl_setopt($ch, CURLOPT_VERBOSE, 0);
-curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-curl_setopt($ch, CURLOPT_AUTOREFERER, true);
-curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
-curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
-
-$output = curl_exec($ch);
-
-curl_close($ch);
-
-            $this->emDebug($output);
-
-
-            $save_data = array(
-              REDCap::getRecordIdField() => $record,
-                'redcap_event_name'      => $event_name,
-                $deets['field_name']     => 'foo'
-            );
-        }
-
-
-    }
-
 
 
     public function sendEmail($to, $from, $subject, $msg, $attachment)
@@ -371,23 +263,6 @@ curl_close($ch);
         $module->emDebug("Send Email 7: Email sent");
         return true;
     }
-
-
-    /**
-     * Read the current config from a single key-value pair in the external module settings table
-     */
-    function getConfigAsString()
-    {
-        $string_config = $this->getProjectSetting($this->PREFIX . '-config');
-        // SurveyDashboard::log($string_config);
-        return $string_config;
-    }
-
-    function setConfigAsString($string_config)
-    {
-        $this->setProjectSetting($this->PREFIX . '-config', $string_config);
-    }
-
 
     public function lookupByCode($code)
     {
@@ -425,7 +300,7 @@ curl_close($ch);
 
 
 
-function setupLetter($record_id) {
+    function setupLetter($record_id) {
     global $module;
 
     set_time_limit(0);

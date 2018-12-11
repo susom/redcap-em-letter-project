@@ -32,8 +32,9 @@ class LetterPDF extends TCPDF
     {
         global $module;
         $doctor_name = $final_data['ltr_doctor_name'];
+        $from_name = $final_data['ltr_name'];
 
-        $module->emDebug("DOCTOR name is $doctor_name", nl2br($final_data['q1']));
+        //$module->emDebug("DOCTOR name is $doctor_name", nl2br($final_data['q1']));
         $q1 = nl2br($final_data['q1']);
         $q3 = nl2br($final_data['q3']);
         //create some HTML content
@@ -58,23 +59,21 @@ color:#1b1fff;
 </style>
 </head>
 <body>
+<div class="cls_question"><span>From {$from_name}</span></div>
 <div class="cls_section"><span>Part 1: Tell Us about What Matters Most to You</span></div>
 <div class="cls_question"><span>Dear Doctor {$doctor_name},</span></div>
 <div class="cls_question">RE: What matters most to me at the end of my life</span></div>
 <div style="" class="cls_013"><span class="cls_013">I realize how important it is that I communicate my wishes to you and my family. I know that you are very busy. You may find it awkward to talk to me about my end-of-life wishes or you may feel that it is too early for me to have this conversation. So I am writing this letter to clarify what matters most to me.</span></div>
 
 <div class="cls_question">Here is what matters most to me:</span></div>
-<div class="cls_example">Examples: Being at home, doing gardening, traveling, going to church, playing with my grandchildren grandchildren</div>
 <div class="cls_response_4"><span class="cls_013"> {$q1}</span></div>
 
 <div class="cls_question"><span>Here are my important future life milestones:</span></div>
-<div class="cls_example"><span>Examples: my 10th wedding anniversary, buying a home, birth of my granddaughter</span></div>
 <div class="cls_response_4"><span>1. {$final_data['q2_milestone_1']} </span></div>
-<div class="cls_response_4"><span>2.  {$final_data['q2_milestone_2']}</span></div>
-<div class="cls_response_4"><span>3.  {$final_data['q2_milestone_3']}</span></div>
-<div class="cls_response_4"><span>4.  {$final_data['q2_milestone_4']}</span></div>
+<div class="cls_response_4"><span>2. {$final_data['q2_milestone_2']}</span></div>
+<div class="cls_response_4"><span>3. {$final_data['q2_milestone_3']}</span></div>
+<div class="cls_response_4"><span>4. {$final_data['q2_milestone_4']}</span></div>
 <div class="cls_question">Here is how we prefer to handle bad news in my family:</span></div>
-<div class="cls_example"><span class="cls_example">Examples: We talk openly about it, we shield the children from it, we do not like to talk about it, we do not tell the patient</span></div>
 <div class="cls_response_4">{$q3}</span></div>
 </body>
 EOF;
@@ -114,7 +113,6 @@ color:#1b1fff;
 <div class="cls_section">
 <span> Part 2: Who Makes Decisions for You when You Cannot</span></div>
 <div class="cls_question">Here is how we make medical decisions in our family:</div>
-<div class="cls_example">Examples: I make the decision myself, my entire family has to agree on major decisions about me, my daughter who is a nurse makes the decisions etc.</div>
 <div class="cls_response_4"><span> {$q4} </span></div>
 <div class="cls_question"><span>Here is who I want making medical decisions for me when I am not able to make my own decision:</span></div>
 <div class="cls_grey_bkgd"><span>Decision maker #1</span></div>
@@ -132,7 +130,8 @@ color:#1b1fff;
  </tr>
  <tr>
   <td colspan="2">City: <span class="cls_response_4"> {$final_data['q5_city_decision_1']}</span></td>
-  <td colspan="2">State Zip:</td>
+  <td colspan="1">State: <span class="cls_response_4"> {$final_data['q5_state_decision_1']}</span></td>
+  <td colspan="1">Zip: <span class="cls_response_4"> {$final_data['q5_zip_decision_1']}</span></td>  
   <td colspan="2">Phone: <span class="cls_response_4"> {$final_data['q5_phone_decision_1']}</span></td>
  </tr> 
 </table>
@@ -151,7 +150,8 @@ color:#1b1fff;
  </tr>
  <tr>
   <td colspan="2">City: <span class="cls_response_4"> {$final_data['q5_city_decision_2']}</span></td>
-  <td colspan="2">State Zip:</td>
+  <td colspan="1">State: <span class="cls_response_4"> {$final_data['q5_state_decision_2']}</span></td>
+  <td colspan="1">Zip: <span class="cls_response_4"> {$final_data['q5_zip_decision_2']}</span></td>  
   <td colspan="2">Phone: <span class="cls_response_4"> {$final_data['q5_phone_decision_2']}</span></td>
  </tr> 
 </table>
@@ -170,7 +170,8 @@ color:#1b1fff;
  </tr>
  <tr>
   <td colspan="2">City: <span class="cls_response_4"> {$final_data['q5_city_decision_3']}</span></td>
-  <td colspan="2">State Zip:</td>
+  <td colspan="1">State: <span class="cls_response_4"> {$final_data['q5_state_decision_3']}</span></td>
+  <td colspan="1">Zip: <span class="cls_response_4"> {$final_data['q5_zip_decision_3']}</span></td>  
   <td colspan="2">Phone: <span class="cls_response_4"> {$final_data['q5_phone_decision_3']}</span></td>
  </tr> 
 </table>
@@ -510,8 +511,8 @@ color:#1b1fff;
  </tr>
  <tr>
   <td colspan="2">City: <span class="cls_response_4"> {$final_data['patient_city']}</span></td>
-  <td colspan="2">State: <span class="cls_response_4"> {$final_data['patient_city']}</span></td>
-  <td colspan="2">Zip: <span class="cls_response_4"> {$final_data['patient_city']}</span></td>
+  <td colspan="2">State: <span class="cls_response_4"> {$final_data['patient_state']}</span></td>
+  <td colspan="2">Zip: <span class="cls_response_4"> {$final_data['patient_zip']}</span></td>
  </tr> 
 </table>
 <br>
@@ -597,8 +598,8 @@ color:#1b1fff;
  </tr>
  <tr>
   <td colspan="2">City: <span class="cls_response_4"> {$final_data['witness1_city']}</span></td>
-  <td colspan="2">State: <span class="cls_response_4"> {$final_data['witness1_city']}</span></td>
-  <td colspan="2">Zip: <span class="cls_response_4"> {$final_data['witness1_city']}</span></td>
+  <td colspan="2">State: <span class="cls_response_4"> {$final_data['witness1_state']}</span></td>
+  <td colspan="2">Zip: <span class="cls_response_4"> {$final_data['witness1_zip']}</span></td>
  </tr> 
 <tr>
   <td colspan="4" class="cls_response"><span class="cls_response_4"> {$final_data['witness1_signature']}</span></td>
@@ -624,8 +625,8 @@ color:#1b1fff;
  </tr>
  <tr>
   <td colspan="2">City: <span class="cls_response_4"> {$final_data['witness2_city']}</span></td>
-  <td colspan="2">State: <span class="cls_response_4"> {$final_data['witness2_city']}</span></td>
-  <td colspan="2">Zip: <span class="cls_response_4"> {$final_data['witness2_city']}</span></td>
+  <td colspan="2">State: <span class="cls_response_4"> {$final_data['witness2_state']}</span></td>
+  <td colspan="2">Zip: <span class="cls_response_4"> {$final_data['witness2_zip']}</span></td>
  </tr> 
 <tr>
   <td colspan="4" class="cls_response"><span class="cls_response_4"> {$final_data['witness2_signature']}</span></td>
@@ -695,6 +696,11 @@ color:#1b1fff;
  <tr>
   <td colspan="6">Address: <span class="cls_response_4"> {$final_data['specialwitness_address']}</span></td>
  </tr>
+ <tr>
+  <td colspan="2">City: <span class="cls_response_4"> {$final_data['specialwitness_city']}</span></td>
+  <td colspan="2">State: <span class="cls_response_4"> {$final_data['specialwitness_state']}</span></td>
+  <td colspan="2">Zip: <span class="cls_response_4"> {$final_data['specialwitness_zip']}</span></td>
+ </tr>  
  <tr>
   <td colspan="4" class="cls_response"><span class="cls_response_4"> {$final_data['specialwitness_signature']}</span></td>
   <td colspan="2" class="cls_response"><span class="cls_response_4"> {$final_data['specialwitness_signdate']}</span></td>

@@ -13,6 +13,7 @@
 
   "permissions": [
     "hook_save_record",
+    "redcap_survey_page_top",
     "hook_survey_complete"
   ],
 
