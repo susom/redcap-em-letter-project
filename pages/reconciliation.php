@@ -426,7 +426,6 @@ namespace Stanford\LetterProject;
                 "q9___1": $('input[name="q9_final_1"]').is(":checked") ? 1 : 0,
                 "q9___2": $('input[name="q9_final_2"]').is(":checked") ? 1 : 0,
                 "q9___3": $('input[name="q9_final_3"]').is(":checked") ? 1 : 0,
-                "q9___4": $('input[name="q9_final_4"]').is(":checked") ? 1 : 0,
                 "q9___99": $('input[name="q9_final_5"]').is(":checked") ? 1 : 0,
                 "q9_99_other": $('#q9_final').val(),
 

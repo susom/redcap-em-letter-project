@@ -3,7 +3,8 @@
 namespace Stanford\LetterProject;
 
 
-use \REDCap as REDCap;
+use REDCap;
+use Files;
 
 class LetterProject extends \ExternalModules\AbstractExternalModule
 {
@@ -43,7 +44,7 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
     {
         $this->emDebug("Starting Hook Survey Complete", $instrument);
 
-        //if this is the final event,
+        //if this is the final event, then assume we are coming in from the reconciliation form. redirect to portal.
         if ($event_id == $this->getProjectSetting('final-event') &&
             ($instrument == $this->getProjectSetting('witness-survey'))) {
 
@@ -100,10 +101,93 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
                 $this->emDebug("FIRST EVENT: COPYING OVER SURVEY: $instrument and event: $event_id");
                 $this->copyToFinal($project_id, $record, $instrument, $event_id);
 
+                //if this is the the witness-survey, copy over the signatures to the final form
+                if ($instrument == $this->getProjectSetting('witness-survey')) {
+                    //get the edoc for these files
+                    //get the signature fields
+                    # Get current file fields (we don't want to include file fields that were deleted from the dictionary)
+
+//                    //xxyjl:  This only works if there are NO NON-SIGNATURE file uploads...
+//                    $file_fields = array();
+//                    foreach (REDCap::getFieldNames() as $field) {
+//                        if (REDCap::getFieldType($field) == 'file') $file_fields[] = $field;
+//                    }
+//                    if (!empty($file_fields)) {
+//                        $this->emDebug("No fields of type 'field' in this project.");
+//                    }
+
+                    //just hardcoding the signature fields.
+                    $file_fields  = array('patient_signature', 'adult_signature', 'witness1_signature',
+                        'witness2_signature','declaration_signature', 'specialwitness_signature');
+
+                    $sig_status = $this->copyOverSigFields($project_id, $record, $file_fields, $event_id);
+
+                }
+
             }
 
         }
 
+    }
+
+    public function copyOverSigFields($project_id, $record, $file_fields, $event_id) {
+        $final_event = $this->getProjectSetting('final-event');
+
+        $this->emDebug($record);
+
+        $sig_status = true;
+
+        # Get doc_ids data for file fields
+        $docs = array();
+
+        $params = array(
+            'return_format'=>'array',
+            'fields'=>$file_fields,
+            'records'=>array($record),
+            'events'=>$event_id);
+        $file_data = REDCap::getData($params);
+
+        $sigs = $file_data[$record][$event_id];
+
+        $values = array();
+        foreach ($file_data[$record][$event_id] as $field_name => $doc_id) {
+            if (!empty($doc_id)) {
+
+                //check if already exists;
+                $check_sql = sprintf("select count(*) from redcap_data where project_id = '%s' and " .
+                    "event_id = '%s' and record = '%s' and field_name = '%s'",
+                    prep($project_id),
+                    prep($final_event),
+                    prep($record),
+                    prep($field_name));
+
+                //$this->emDebug("SQL is " . $check_sql);
+                $q = db_result(db_query($check_sql),0);
+                //$this->emDebug("SQL result is " . $q);
+
+                //INSERT ignore INTO redcap_data (project_id, event_id,record,field_name,value) VALUES (186, 1095,13,'patient_signature', 805);
+                if ($q == 0) {
+                    //no existing signature, so update signature over to the final event
+                    $values[] = sprintf("('%s', '%s','%s', '%s','%s')",
+                        prep($project_id),
+                        prep($final_event),
+                        prep($record),
+                        prep($field_name),
+                        prep($doc_id));
+                }
+            }
+        }
+        $value_str = implode(',', $values);
+
+        $insert_sql = "INSERT INTO redcap_data (project_id, event_id,record,field_name,value) VALUES  " . $value_str .';';
+        $sig_status = db_query($insert_sql);
+
+        $this->emDebug("SQL: ", $insert_sql,$sig_status);
+
+//        $this->emDebug($file_data);
+//        $this->emDebug($docs);
+
+        return $sig_status;
     }
 
     /**
@@ -299,105 +383,132 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
     }
 
 
+    function setupLetter($record_id)
+    {
+        global $module;
 
-    function setupLetter($record_id) {
-    global $module;
+        set_time_limit(0);
 
-    set_time_limit(0);
+        //$pdf = new LetterPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT,true, 'UTF-8', false);
 
-    //$pdf = new LetterPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT,true, 'UTF-8', false);
+        $pdf = new LetterPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, false, 'ISO-8859-1', false);
 
-    $pdf = new LetterPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, false, 'ISO-8859-1', false);
+        // Set document information dictionary in unicode mode
+        $pdf->SetDocInfoUnicode(true);
 
-    // Set document information dictionary in unicode mode
-    $pdf->SetDocInfoUnicode(true);
+        //$module->emDebug("LOGO", PDF_HEADER_LOGO);
+        $pdf->SetHeaderData(PDF_HEADER_LOGO, PDF_HEADER_LOGO_WIDTH, 'Stanford What-Matters-Most Letter Directive', null, array(150, 43, 40));
 
-    //$module->emDebug("LOGO", PDF_HEADER_LOGO);
-    $pdf->SetHeaderData(PDF_HEADER_LOGO, PDF_HEADER_LOGO_WIDTH, 'Stanford What-Matters-Most Letter Directive', null, array(150, 43, 40));
+        // set header and footer fonts
+        $pdf->setHeaderFont(Array('times', '', 14));
+        $pdf->setFooterFont(Array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
 
-    // set header and footer fonts
-    $pdf->setHeaderFont(Array('times', '', 14));
-    $pdf->setFooterFont(Array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
+        $pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
+        $pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
+        $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
 
-    $pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
-    $pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
-    $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
+        $pdf->SetFont('arial', '', 12);
+        $pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
 
-    $pdf->SetFont('arial', '', 12);
-    $pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
+        // set image scale factor
+        $pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
 
-    // set image scale factor
-    $pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
+        // ---------------------------------------------------------
+        //if record ID is set, get Data for that record
 
-    // ---------------------------------------------------------
-    //if record ID is set, get Data for that record
+        // Use alternative passing of parameters as an associate array
+        $params = array(
+            'project_id' => $module->getProjectId(),
+            'return_format' => 'json',
+            //'exportSurveyFields'=>true,
+            //'fields'=>array('dob','record_id'),
+            'events' => array($module->getProjectSetting('final-event')),
+            'records' => array($record_id));
+        $data = REDCap::getData($params);
 
-    // Use alternative passing of parameters as an associate array
-    $params = array(
-        'project_id' => $module->getProjectId(),
-        'return_format' => 'json',
-        //'exportSurveyFields'=>true,
-        //'fields'=>array('dob','record_id'),
-        'events' => array($module->getProjectSetting('final-event')),
-        'records' => array($record_id));
-    $data = REDCap::getData($params);
+        //$q = \REDCap::getData($module->getProjectId(), 'json',  array($record_id), null, $module->getProjectSetting('final-event'));
+        $final_data = json_decode($data, true);
+        //$module->emDebug($params,$module->getProjectId(),$module->getProjectSetting('final-event'), $final_data, $record_id, "FINAL DATA");
 
-    //$q = \REDCap::getData($module->getProjectId(), 'json',  array($record_id), null, $module->getProjectSetting('final-event'));
-    $final_data = json_decode($data, true);
-    //$module->emDebug($params,$module->getProjectId(),$module->getProjectSetting('final-event'), $final_data, $record_id, "FINAL DATA");
+        //
+        $final_data = current($final_data);
 
-    // ---------------------------------------------------------
+        // ---------------------------------------------------------
 
-    // set font
-    //$pdf->SetFont('arial', '', 12);
+        // set font
+        //$pdf->SetFont('arial', '', 12);
 
-    // add a page
-    $pdf->AddPage();
+        // add a page
+        $pdf->AddPage();
 
-    //create html for page 1
-    $html = $pdf->makeHTMLPage1($record_id, current($final_data));
-    $pdf->writeHTML($html, true, false, true, false, '');
+        //create html for page 1
+        $html = $pdf->makeHTMLPage1($record_id, $final_data);
+        $pdf->writeHTML($html, true, false, true, false, '');
 
-    //create html for page 2
-    $pdf->AddPage();
-    $html = $pdf->makeHTMLPage2($record_id,current($final_data));
-    $pdf->writeHTML($html, true, false, true, false, '');
+        //create html for page 2
+        $pdf->AddPage();
+        $html = $pdf->makeHTMLPage2($record_id, $final_data);
+        $pdf->writeHTML($html, true, false, true, false, '');
 
-    //Question 6
-    $q6 = current($final_data)['q6'];
-    $pdf->RadioButton('health_decisions', 5, array(), array(), '1', ($q6 == 1));
-    $pdf->Cell(35, 5, 'Starting right now');
-    $pdf->Ln(6);
-    $pdf->RadioButton('health_decisions', 5, array(), array(), '2', $q6 == 2);
-    $pdf->Cell(35, 5, 'When I am not able to make decisions by myself');
-    $pdf->Ln(6);
+        //Question 6
+        $q6 = $final_data['q6'];
+        $pdf->RadioButton('health_decisions', 5, array(), array(), '1', ($q6 == 1));
+        $pdf->Cell(35, 5, 'Starting right now');
+        $pdf->Ln(6);
+        $pdf->RadioButton('health_decisions', 5, array(), array(), '2', $q6 == 2);
+        $pdf->Cell(35, 5, 'When I am not able to make decisions by myself');
+        $pdf->Ln(6);
 
-    //create html for page 3
-    $pdf->AddPage();
-    $pdf = $pdf->makeHTMLPage3($record_id,current($final_data), $pdf);
+        //create html for page 3
+        $pdf->AddPage();
+        $pdf = $pdf->makeHTMLPage3($record_id, $final_data, $pdf);
 
-    //create html for page 4
-    $pdf->AddPage();
-    $pdf = $pdf->makeHTMLPage4($record_id,current($final_data), $pdf);
+        //create html for page 4
+        $pdf->AddPage();
+        $pdf = $pdf->makeHTMLPage4($record_id, $final_data, $pdf);
 
-    //create html for page 5
-    $pdf->AddPage();
-    $html5 = $pdf->makeHTMLPage5($record_id,current($final_data), $pdf);
-    $pdf->writeHTML($html5, true, false, true, false, '');
+        //copy over signatures for page 5
+        $patient_sigfile_path = Files::copyEdocToTemp($final_data['patient_signature'], true);
+        $adult_sigfile_path = Files::copyEdocToTemp($final_data['adult_signature'], true);
 
-    //create html for page 6n
-    $pdf->AddPage();
-    $html6 = $pdf->makeHTMLPage6($record_id,current($final_data), $pdf);
-    $pdf->writeHTML($html6, true, false, true, false, '');
+        //create html for page 5
+        $pdf->AddPage();
+        $html5 = $pdf->makeHTMLPage5($record_id, $final_data, $patient_sigfile_path, $adult_sigfile_path);
+        $pdf->writeHTML($html5, true, false, true, false, '');
+
+        //unlink the files
+        unlink($patient_sigfile_path);
+        unlink($adult_sigfile_path);
+
+        //copy over signatures for page 6
+        $witness1_sigfile_path = Files::copyEdocToTemp($final_data['witness1_signature'], true);
+        $witness2_sigfile_path = Files::copyEdocToTemp($final_data['witness2_signature'], true);
 
 
-    //create html for page 7
-    $pdf->AddPage();
-    $html7 = $pdf->makeHTMLPage7($record_id,current($final_data), $pdf);
-    $pdf->writeHTML($html7, true, false, true, false, '');
+        //create html for page 6n
 
-    return $pdf;
-}
+        $pdf->AddPage();
+        $html6 = $pdf->makeHTMLPage6($record_id, $final_data, $witness1_sigfile_path, $witness2_sigfile_path);
+        $pdf->writeHTML($html6, true, false, true, false, '');
+
+        //unlink the files
+        unlink($witness1_sigfile_path);
+        unlink($witness2_sigfile_path);
+
+
+        $declaration_sigfile_path = Files::copyEdocToTemp($final_data['declaration_signature'], true);
+        $specialwitness_sigfile_path = Files::copyEdocToTemp($final_data['specialwitness_signature'], true);
+
+        //create html for page 7
+        $pdf->AddPage();
+        $html7 = $pdf->makeHTMLPage7($record_id, $final_data, $declaration_sigfile_path, $specialwitness_sigfile_path);
+        $pdf->writeHTML($html7, true, false, true, false, '');
+
+        unlink($declaration_sigfile_path);
+        unlink($specialwitness_sigfile_path);
+
+        return $pdf;
+    }
 
     public static function getSessionMessage()
     {

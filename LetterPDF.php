@@ -366,9 +366,6 @@ return $pdf;
         $pdf->Cell(70, 5, 'I want you to allow me to die gently and naturally');
         $pdf->ln(8);
         $pdf->CheckBox('q9', 5, $final_data['q9___3'] == 1, array(), array());
-        $pdf->Cell(70, 5, 'I want to die at home');
-        $pdf->ln(8);
-        $pdf->CheckBox('q9', 5, $final_data['q9___4'] == 1, array(), array());
         $pdf->Cell(70, 5, 'I want hospice care');
         $pdf->ln(8);
         $pdf->CheckBox('q9', 5, $final_data['q9___99'] == 1, array(), array());
@@ -397,10 +394,10 @@ return $pdf;
         $pdf->Ln(6);
 
         $pdf->Ln(10);
-        $pdf->RadioButton('q11', 5, array(), array(), '1',  $final_data['q11'] == 1 ? true : false);
+        $pdf->RadioButton('q11', 5, array(), array(), '1',  $final_data['q11'] === '1' ? true : false);
         $pdf->Cell(70, 5, 'Yes');
         $pdf->Ln(6);
-        $pdf->RadioButton('q11', 5, array(), array(), '0', $final_data['q11'] == 0 ? true : false);
+        $pdf->RadioButton('q11', 5, array(), array(), '0', $final_data['q11'] === '0' ? true : false);
         $pdf->Cell(70, 5, 'No');
         $pdf->Ln(6);
 
@@ -459,12 +456,8 @@ return $pdf;
 
     }
 
-    public static function makeHTMLPage5($record_id, $final_data) {
-
-        //preserve the line feeds
-        $q4 = nl2br($final_data['q4']);
-
-
+    public static function makeHTMLPage5($record_id, $final_data, $patient_sigfile_path, $adult_sigfile_path) {
+        global $module;
 
         $html = <<<EOF
 <head>
@@ -483,7 +476,7 @@ white-space: pre;
 .cls_response_4 {
 color:#1b1fff;
 }
-    .cls_grey_bkgd {background-color:#e1e1e1;font-weight:bold}
+.cls_grey_bkgd {background-color:#e1e1e1;font-weight:bold}
 </style>
 </head>
 <body>
@@ -494,18 +487,13 @@ color:#1b1fff;
 <div class="cls_question">Sign your name and write the date:</div><br>
 <table border="0" cellpadding="2" cellspacing="2" nobr="true">
 <tr>
-<td colspan="6" class="cls_response"></td>
+    <td colspan="6">Sign your name: <img src="{$patient_sigfile_path}" alt="signature" height="36" ></td>
 </tr>
-  <tr>
-  <td colspan="3">Sign your name: <span class="cls_response_4"> {$final_data['patient_signature']}</span></td>
+<br>
+<tr>
+  <td colspan="3" >Print your name: <span class="cls_response_4"> {$final_data['patient_name']}</span></td>
   <td colspan="3">Date: <span class="cls_response_4"> {$final_data['patient_signdate']}</span></td>  
  </tr>
- <tr>
-<td colspan="6" class="cls_response"><span class="cls_response_4"> {$final_data['patient_name']}</span></td>
-</tr>
- <tr>
-  <td colspan="6">Print your name: </td>
- </tr> 
  <tr>
   <td colspan="6">Address: <span class="cls_response_4"> {$final_data['patient_address']}</span></td>
  </tr>
@@ -524,19 +512,14 @@ color:#1b1fff;
  <div>Name and signature of adult signing my name in my presence and at my direction:</div>
  <br>
 <table border="0" cellpadding="2" cellspacing="2" nobr="true">
-  <tr>
-  <td colspan="2" class="cls_response">{$final_data['signature_adult']} </td>
-  <td colspan="3" class="cls_response"><span class="cls_response_4"> {$final_data['adult_signature']}</span></td>
-  <td colspan="1" class="cls_response"><span class="cls_response_4"> {$final_data['adult_signdate']}</span></td>
+<tr>
+    <td colspan="6">Signature: <img src="{$adult_sigfile_path}" alt="signature" height="36" ></td>
+</tr>
+<br>
+<tr>
+  <td colspan="3" >Name: <span class="cls_response_4"> {$final_data['signature_adult']}</span></td>
+  <td colspan="3">Date: <span class="cls_response_4"> {$final_data['adult_signdate']}</span></td>  
  </tr>
-  <tr>
-  <td colspan="2">Name:</td>
-  <td colspan="3">Signature:</td>
-  <td colspan="1">Date: </td>
- </tr>
-  <tr>
-  
- </tr> 
 </table>
 </body>
 EOF;
@@ -545,7 +528,7 @@ EOF;
     }
 
 
-    public static function makeHTMLPage6($record_id, $final_data) {
+    public static function makeHTMLPage6($record_id, $final_data, $witness1_sigfile_path,$witness2_sigfile_path) {
 
         $html = <<<EOF
 <head>
@@ -564,7 +547,7 @@ white-space: pre;
 .cls_response_4 {
 color:#1b1fff;
 }
-    .cls_grey_bkgd {background-color:#e1e1e1;font-weight:bold}
+.cls_grey_bkgd {background-color:#e1e1e1;font-weight:bold}
 </style>
 </head>
 <body>
@@ -586,13 +569,14 @@ color:#1b1fff;
 </div>
 <div class="cls_question">Witness #1</div><br>
 <table border="0" cellpadding="2" cellspacing="2" nobr="true">
-
- <tr>
-<td colspan="6" class="cls_response"><span class="cls_response_4"> {$final_data['witness1_name']}</span></td>
+<tr>
+    <td colspan="6">Signature: <img src="{$witness1_sigfile_path}" alt="signature" height="36" ></td>
 </tr>
- <tr>
-  <td colspan="6">Print your name: </td>
- </tr> 
+<br>
+<tr>
+  <td colspan="3" >Print your name: <span class="cls_response_4"> {$final_data['witness1_name']}</span></td>
+  <td colspan="3">Date: <span class="cls_response_4"> {$final_data['witness1_signdate']}</span></td>  
+ </tr>
  <tr>
   <td colspan="6">Address: <span class="cls_response_4"> {$final_data['witness1_address']}</span></td>
  </tr>
@@ -601,26 +585,19 @@ color:#1b1fff;
   <td colspan="2">State: <span class="cls_response_4"> {$final_data['witness1_state']}</span></td>
   <td colspan="2">Zip: <span class="cls_response_4"> {$final_data['witness1_zip']}</span></td>
  </tr> 
-<tr>
-  <td colspan="4" class="cls_response"><span class="cls_response_4"> {$final_data['witness1_signature']}</span></td>
-  <td colspan="2" class="cls_response"><span class="cls_response_4"> {$final_data['witness1_signdate']}</span></td>
- </tr>
-  <tr>
-  <td colspan="4">Signature:</td>
-  <td colspan="2">Date: </td>
- </tr> 
 </table>
 <br>
 <div class="cls_question">Witness #2</div><br>
 <table border="0" cellpadding="2" cellspacing="2" nobr="true">
-
- <tr>
-<td colspan="6" class="cls_response"><span class="cls_response_4"> {$final_data['witness2_name']}</span></td>
+<tr>
+    <td colspan="6">Signature: <img src="{$witness2_sigfile_path}" alt="signature" height="36" ></td>
 </tr>
- <tr>
-  <td colspan="6">Print your name: </td>
- </tr> 
- <tr>
+<br>
+<tr>
+  <td colspan="3" >Print your name: <span class="cls_response_4"> {$final_data['witness2_name']}</span></td>
+  <td colspan="3">Date: <span class="cls_response_4"> {$final_data['witness2_signdate']}</span></td>  
+ </tr>
+  <tr>
   <td colspan="6">Address: <span class="cls_response_4"> {$final_data['witness2_address']}</span></td>
  </tr>
  <tr>
@@ -628,25 +605,17 @@ color:#1b1fff;
   <td colspan="2">State: <span class="cls_response_4"> {$final_data['witness2_state']}</span></td>
   <td colspan="2">Zip: <span class="cls_response_4"> {$final_data['witness2_zip']}</span></td>
  </tr> 
-<tr>
-  <td colspan="4" class="cls_response"><span class="cls_response_4"> {$final_data['witness2_signature']}</span></td>
-  <td colspan="2" class="cls_response"><span class="cls_response_4"> {$final_data['witness2_signdate']}</span></td>
- </tr>
-  <tr>
-  <td colspan="4">Signature:</td>
-  <td colspan="2">Date: </td>
- </tr> 
 </table>
 
 </body>
 EOF;
-
         return $html;
     }
 
-  public static function makeHTMLPage7($record_id, $final_data) {
+  public static function makeHTMLPage7($record_id, $final_data, $declaration_sigfile_path, $specialwitness_sigfile_path) {
 
-        $html = <<<EOF
+
+      $html = <<<EOF
 <head>
 <style>
     .cls_section {background-color:#e1e1e1;color:#962b28;font-size:18pt; font-weight:bold}
@@ -674,8 +643,9 @@ color:#1b1fff;
  <div class="pt-1">I also promise I am not related to the person signing this What Matters Most letter directive by blood, marriage, or adoption, and to the best of my knowledge, I am not entitled to any of their money or property after they die.</div>
 <table border="0" cellpadding="2" cellspacing="2" nobr="true">
  <tr>
-<td colspan="6" class="cls_response"><span class="cls_response_4"> {$final_data['declaration_signature']}</span></td>
+    <td colspan="6">Signature: <img src="{$declaration_sigfile_path}" alt="signature" height="36" ></td>
 </tr>
+<br>
  <tr>
   <td colspan="6">Print your name: </td>
  </tr>
@@ -686,13 +656,16 @@ color:#1b1fff;
 <div class="pt-1">I further declare under penalty of perjury under the laws of the State of California that I am a patient advocate or ombudsman as designated by the State Department of Aging and am serving as a witness as required by Probate Code 4675.</div><br>
 <table border="0" cellpadding="2" cellspacing="2" nobr="true">
 <tr>
-  <td colspan="4" class="cls_response"><span class="cls_response_4"> {$final_data['specialwitness_name']}</span></td>
-  <td colspan="2" class="cls_response"><span class="cls_response_4"> {$final_data['specialwitness_title']}</span></td>
+    <td colspan="6">Signature: <img src="{$specialwitness_sigfile_path}" alt="signature" height="36" ></td>
+</tr>
+<br>
+<tr>
+  <td colspan="3" >Name: <span class="cls_response_4"> {$final_data['specialwitness_name']}</span></td>
+  <td colspan="3">Date: <span class="cls_response_4"> {$final_data['specialwitness_signdate']}</span></td>  
  </tr>
-  <tr>
-  <td colspan="4">Name:</td>
-  <td colspan="2">Title: </td>
- </tr> 
+<tr>
+    <td colspan="6" >Title: <span class="cls_response_4"> {$final_data['specialwitness_title']}</span></td>
+ </tr>
  <tr>
   <td colspan="6">Address: <span class="cls_response_4"> {$final_data['specialwitness_address']}</span></td>
  </tr>
@@ -701,14 +674,7 @@ color:#1b1fff;
   <td colspan="2">State: <span class="cls_response_4"> {$final_data['specialwitness_state']}</span></td>
   <td colspan="2">Zip: <span class="cls_response_4"> {$final_data['specialwitness_zip']}</span></td>
  </tr>  
- <tr>
-  <td colspan="4" class="cls_response"><span class="cls_response_4"> {$final_data['specialwitness_signature']}</span></td>
-  <td colspan="2" class="cls_response"><span class="cls_response_4"> {$final_data['specialwitness_signdate']}</span></td>
- </tr>
-  <tr>
-  <td colspan="4">Signature:</td>
-  <td colspan="2">Date: </td>
- </tr> 
+ <br>
  <tr>
   <td colspan="4">State of California County of <span class="cls_response_4"> {$final_data['county']} </span></td>
 </tr>
@@ -717,7 +683,7 @@ color:#1b1fff;
 </body>
 EOF;
 
-        return $html;
+      return $html;
     }
 
     public function decodeRefuse($coded) {
