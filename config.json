@@ -91,6 +91,12 @@
       "type": "form-list"
     },
     {
+      "key": "email-survey",
+      "name": "<b>Email Survey<br>Survey where proxy emails are selected</b>",
+      "required": false,
+      "type": "form-list"
+    },
+    {
       "key": "hash",
       "name": "<b>Hash Field</b>",
       "required": false,

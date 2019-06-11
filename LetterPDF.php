@@ -13,19 +13,67 @@ require_once('tcpdf_include.php');
 
 class LetterPDF extends TCPDF
 {
-    public function Header2()
+    public function Header()
     {
-        $this->SetFont('arial', '', 14);
-        $title = utf8_encode('title');
-        $subtitle = utf8_encode('sub title');
+        global $module;
+
+        $from_name = $this->CustomHeaderText;
+        $img = $module->getUrl('images/shc_barcode.png');
+
+        $this->SetFont('arial', 'A', 8);
+        $this->SetXY(15, 5);
+        $this->Cell(90, 2, 'Medical Record Number', 'R', 1, 'L', 0, '', 0, false, 'T', 'C');
+        $this->Cell(90, 2, 'Patient Name:  '.$from_name, 'R', 1, 'L', 0, '', 0, false, 'T', 'C');
+        $this->SetXY(15, 8);
+        $this->Cell(90, 10, '', 'R', 1, 'L', 0, '', 0, false, 'T', 'C');
+        //$this->SetXY(15, 10);
+        //$this->Cell(90, 6, '', 'R', 1, 'L', 0, '', 0, false, 'T', 'C');
+        //$this->SetXY(15, 14);
+        //$this->Cell(90, 6, '', 'R', 1, 'L', 0, '', 0, false, 'T', 'C');
+
+        $this->SetXY(105, 2);
+        $this->SetFont('arial', 'A', 7);
+        $this->Cell(90, 4, 'STANFORD HEALTH CARE', 0, 0, 'C', 0, '', 0, false, 'T', 'C');
+        $this->SetXY(105, 5);
+        $this->Cell(90, 4, 'STANFORD, CALIFORNIA 94305', 0, 0, 'C', 0, '', 0, false, 'T', 'C');
+
+        $this->SetXY(90, 8);
+        //$this->Image('images/shc_barcode.png', 105, 6, 40, 40, '', '', 'T', false, 300, '', false, false, 1, false, false, false);
+        $this->Image($img, 135, 8, '', 9, '', '', 'T', false, 300, '', false, false, 1, false, false, false);
+
+        $this->SetXY(105, 17);
+        $this->Cell(90, 4, 'ADMIN ADVANCE DIRECTIVE:', 'L', 0, 'C', 0, '', 0, false, 'T', 'C');
+        $this->SetXY(105, 20);
+        $this->Cell(90, 4, 'WHAT MATTERS MOST', 0, 0, 'C', 0, '', 0, false, 'T', 'C');
+
+        $this->SetXY(15, 20);
+        $this->SetFont('arial', 'A', 6);
+        $this->Cell(90, 4, 'Addressograph or Label - Patient Name, Medical Record Number', 'R', 0, 'C', 0, '', 0, false, 'T', 'C');
+        $this->SetXY(125, 20);
+        $this->Cell(90, 3, 'Page '.$this->getAliasNumPage().' of '.$this->getAliasNbPages(), 0, false, 'R', 0, '', 0, false, 'T', 'C');
+
+        //$this->SetXY(400, 10);
+        //$this->writeHTML($html_r, true, false, false, false, '');
+
+
+
+        //$this->SetXY(800, 15);
+
+
+        //$title = utf8_encode('title');
+        //$subtitle = utf8_encode('sub title');
+        //$this->Cell(0, 4, 'Page ' . $this->getAliasNumPage() . ' of ' . $this->getAliasNbPages(), 0, false, 'R', 0, '', 0, false, 'T', 'M');
         $this->SetHeaderMargin(40);
-        $this->Line(15, 23, 405, 23);
+        $this->Line(15, 24, 405, 24);
+
     }
 
     public function Footer()
     {
         $this->SetFont('arial', '', 8);
-        $this->Cell(0, 5, 'Pag ' . $this->getAliasNumPage() . '/' . $this->getAliasNbPages(), 0, false, 'R', 0, '', 0, false, 'T', 'M');
+        $this->Cell(0,5,'15-3192 (03/19)', 0,false, 'L');
+
+
     }
 
     public static function makeHTMLPage1($record_id, $final_data)
@@ -59,7 +107,6 @@ color:#1b1fff;
 </style>
 </head>
 <body>
-<div class="cls_question"><span>From {$from_name}</span></div>
 <div class="cls_section"><span>Part 1: Tell Us about What Matters Most to You</span></div>
 <div class="cls_question"><span>Dear Doctor {$doctor_name},</span></div>
 <div class="cls_question">RE: What matters most to me at the end of my life</span></div>

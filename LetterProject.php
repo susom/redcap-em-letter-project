@@ -96,6 +96,12 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
                 $this->emDebug("FIRST EVENT: STARTING SURVEY  SET HASH : $instrument and event: $event_id");
                 $this->setHash($project_id, $record, $instrument);
 
+            } elseif ($instrument == $this->getProjectSetting('email-survey')) {
+
+                //if this is the email survey, iterate through and copy over the teh first three selected to the proxy fields.
+                $this->emDebug("FIRST EVENT: STARTING SURVEY  SET HASH : $instrument and event: $event_id");
+                $this->setProxyEmails($project_id, $record, $instrument);
+
             } else {
 
                 $this->emDebug("FIRST EVENT: COPYING OVER SURVEY: $instrument and event: $event_id");
@@ -240,6 +246,72 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
             }
 
         }
+    }
+
+    public function setProxyEmails($project_id, $record, $instrument) {
+        //get the data for the selected emails
+         $q = REDCap::getData(
+                'json',
+                $record,
+                array(
+                    REDCap::getRecordIdField(),
+                    'email_decision_maker_1',
+                    'email_decision_maker_2',
+                    'email_decision_maker_3',
+                    'email_decision_maker_4',
+                    'email_decision_maker_5',
+                    'email_decision_maker_6',
+                    'send_decision_maker_1',
+                    'send_decision_maker_2',
+                    'send_decision_maker_3',
+                    'send_decision_maker_4',
+                    'send_decision_maker_5',
+                    'send_decision_maker_6'
+                ),
+                $this->getProjectSetting('first-event')
+            //LetterProject::$config['first_event']
+         );
+        $results = json_decode($q, true);
+        $result = current($results);
+
+        $this->emDebug($result);
+
+        $data = array(
+            REDCap::getRecordIdField() => $record,
+            'redcap_event_name' => REDCap::getEventNames(true,false,$this->getProjectSetting('first-event')),
+        );
+
+
+        $j=1;
+        for ($i=1; $i<7; $i++) {
+            //check if the send is set
+            $set_status = $result["send_decision_maker_".$i."___1"];
+            $this->emDebug($i,  "send_decision_maker_".$i."___1", $set_status);
+
+                if ($set_status==1) {
+                    if ($j < 4) {
+                        $data["email_proxy_" . $j] = $result["email_decision_maker_" . $i];
+                    } else {
+
+                        REDCap::logEvent(
+                            "Only 3 proxies allowed to be selected.",  //action
+                            "Unable to send email to more than 3 proxies. Not sending email to {$i}th selected at ".
+                            $result["email_decision_maker_" . $i],
+                            NULL, //sql optional
+                            $record //record optional
+                        );
+                    }
+                    $j++;
+                }
+        }
+        $this->emDebug($results, $data,"DEBUG", "Current Record");
+        $q= REDCap::saveData('json', json_encode(array($data)), 'overwrite');
+
+        if (count($q['errors']) > 0) {
+            $this->emError($q, "Error saving proxy emails", "ERROR");
+            return false;
+        }
+
     }
 
     public function setHash($project_id, $record, $instrument)
@@ -432,6 +504,8 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
 
         //
         $final_data = current($final_data);
+
+        $pdf->CustomHeaderText =$final_data['ltr_name'];
 
         // ---------------------------------------------------------
 
