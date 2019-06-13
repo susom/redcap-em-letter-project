@@ -109,18 +109,24 @@ color:#1b1fff;
 <body>
 <div class="cls_section"><span>Part 1: Tell Us about What Matters Most to You</span></div>
 <div class="cls_question"><span>Dear Doctor {$doctor_name},</span></div>
-<div class="cls_question">RE: What matters most to me at the end of my life</span></div>
-<div style="" class="cls_013"><span class="cls_013">I realize how important it is that I communicate my wishes to you and my family. I know that you are very busy. You may find it awkward to talk to me about my end-of-life wishes or you may feel that it is too early for me to have this conversation. So I am writing this letter to clarify what matters most to me.</span></div>
+<div class="cls_question">RE: What matters most to me at the end of my life</div>
+<div>I have been reading and thinking about end-of-life issues lately. I realize how important it is that I communicate my wishes to you and my family. I know that you are very busy. You may find it awkward to talk to me about my end-of-life wishes or you may feel that it is too early for me to have this conversation. So I am writing this letter to clarify what matters most to me.</div>
 
-<div class="cls_question">Here is what matters most to me:</span></div>
+<div class="cls_question">Here is what matters most to me:<br>
+<span style="font-weight:normal"><i>Examples: Being at home, doing gardening, traveling, going to church, playing with my grandchildren</i></span>
+</div>
 <div class="cls_response_4"><span class="cls_013"> {$q1}</span></div>
 
-<div class="cls_question"><span>Here are my important future life milestones:</span></div>
+<div class="cls_question">Here are my important future life milestones:
+<span style="font-weight:normal"><br><i>Examples: my 10th wedding anniversary, buying a home, birth of my granddaughter</i></span>
+</div>
 <div class="cls_response_4"><span>1. {$final_data['q2_milestone_1']} </span></div>
 <div class="cls_response_4"><span>2. {$final_data['q2_milestone_2']}</span></div>
 <div class="cls_response_4"><span>3. {$final_data['q2_milestone_3']}</span></div>
 <div class="cls_response_4"><span>4. {$final_data['q2_milestone_4']}</span></div>
-<div class="cls_question">Here is how we prefer to handle bad news in my family:</span></div>
+<div class="cls_question">Here is how we prefer to handle bad news in my family:
+<span style="font-weight:normal"><br><i>Examples: We talk openly about it, we shield the children from it, we do not like to talk about it, we do not tell the patient</i></span>
+</div>
 <div class="cls_response_4">{$q3}</span></div>
 </body>
 EOF;
@@ -159,66 +165,62 @@ color:#1b1fff;
 <body>
 <div class="cls_section">
 <span> Part 2: Who Makes Decisions for You when You Cannot</span></div>
-<div class="cls_question">Here is how we make medical decisions in our family:</div>
+<div class="cls_question">Here is how we make medical decisions in our family:
+<span style="font-weight:normal"><br><i>Examples: I make the decision myself, my entire family has to agree on major decisions about me, my daughter who is a nurse makes the decisions etc.</i></span>
+</div>
 <div class="cls_response_4"><span> {$q4} </span></div>
 <div class="cls_question"><span>Here is who I want making medical decisions for me when I am not able to make my own decision:</span></div>
 <div class="cls_grey_bkgd"><span>Decision maker #1</span></div>
 <table border="0" cellpadding="2" cellspacing="2" nobr="true">
   <tr>
-  <td colspan="3">Signature:</td>
-  <td colspan="3">Date:</td>
- </tr>
-  <tr>
-  <td colspan="3">Name: <span class="cls_response_4"> {$final_data['q5_name_decision_1']}</span></td>
-  <td colspan="3">Relationship: <span class="cls_response_4"> {$final_data['q5_relationship_decision_1']}</span></td>
+  <td colspan="4">Name: <span class="cls_response_4"> {$final_data['q5_name_decision_1']}</span></td>
+  <td colspan="2">Relationship: <span class="cls_response_4"> {$final_data['q5_relationship_decision_1']}</span></td>
  </tr>
  <tr>
   <td colspan="6">Address: <span class="cls_response_4"> {$final_data['q5_address_decision_1']}</span></td>
  </tr>
  <tr>
-  <td colspan="2">City: <span class="cls_response_4"> {$final_data['q5_city_decision_1']}</span></td>
+  <td colspan="3">City: <span class="cls_response_4"> {$final_data['q5_city_decision_1']}</span></td>
   <td colspan="1">State: <span class="cls_response_4"> {$final_data['q5_state_decision_1']}</span></td>
-  <td colspan="1">Zip: <span class="cls_response_4"> {$final_data['q5_zip_decision_1']}</span></td>  
-  <td colspan="2">Phone: <span class="cls_response_4"> {$final_data['q5_phone_decision_1']}</span></td>
+  <td colspan="1">Zip: <span class="cls_response_4"> {$final_data['q5_zip_decision_1']}</span></td> 
+  </tr>
+  <tr>
+  <td colspan="4">Phone number: <span class="cls_response_4"> {$final_data['q5_phone_decision_1']}</span></td>
  </tr> 
 </table>
 <div class="cls_grey_bkgd"><span>Decision maker #2</span></div>
 <table border="0" cellpadding="2" cellspacing="2" nobr="true">
   <tr>
-  <td colspan="3">Signature:</td>
-  <td colspan="3">Date:</td>
- </tr>
-  <tr>
-  <td colspan="3">Name: <span class="cls_response_4"> {$final_data['q5_name_decision_2']}</span></td>
-  <td colspan="3">Relationship: <span class="cls_response_4"> {$final_data['q5_relationship_decision_2']}</span></td>
+  <td colspan="4">Name: <span class="cls_response_4"> {$final_data['q5_name_decision_2']}</span></td>
+  <td colspan="2">Relationship: <span class="cls_response_4"> {$final_data['q5_relationship_decision_2']}</span></td>
  </tr>
  <tr>
   <td colspan="6">Address: <span class="cls_response_4"> {$final_data['q5_address_decision_2']}</span></td>
  </tr>
  <tr>
-  <td colspan="2">City: <span class="cls_response_4"> {$final_data['q5_city_decision_2']}</span></td>
+  <td colspan="3">City: <span class="cls_response_4"> {$final_data['q5_city_decision_2']}</span></td>
   <td colspan="1">State: <span class="cls_response_4"> {$final_data['q5_state_decision_2']}</span></td>
-  <td colspan="1">Zip: <span class="cls_response_4"> {$final_data['q5_zip_decision_2']}</span></td>  
-  <td colspan="2">Phone: <span class="cls_response_4"> {$final_data['q5_phone_decision_2']}</span></td>
+  <td colspan="1">Zip: <span class="cls_response_4"> {$final_data['q5_zip_decision_2']}</span></td>
+  </tr>
+  <tr>  
+  <td colspan="4">Phone: <span class="cls_response_4"> {$final_data['q5_phone_decision_2']}</span></td>
  </tr> 
 </table>
 <div class="cls_grey_bkgd"><span>Decision maker #3</span></div>
 <table border="0" cellpadding="2" cellspacing="2" nobr="true">
-  <tr>
-  <td colspan="3">Signature:</td>
-  <td colspan="3">Date:</td>
- </tr>
    <tr>
-  <td colspan="3">Name: <span class="cls_response_4"> {$final_data['q5_name_decision_3']}</span></td>
-  <td colspan="3">Relationship: <span class="cls_response_4"> {$final_data['q5_relationship_decision_3']}</span></td>
+  <td colspan="4">Name: <span class="cls_response_4"> {$final_data['q5_name_decision_3']}</span></td>
+  <td colspan="2">Relationship: <span class="cls_response_4"> {$final_data['q5_relationship_decision_3']}</span></td>
  </tr>
  <tr>
   <td colspan="6">Address: <span class="cls_response_4"> {$final_data['q5_address_decision_3']}</span></td>
  </tr>
  <tr>
-  <td colspan="2">City: <span class="cls_response_4"> {$final_data['q5_city_decision_3']}</span></td>
+  <td colspan="3">City: <span class="cls_response_4"> {$final_data['q5_city_decision_3']}</span></td>
   <td colspan="1">State: <span class="cls_response_4"> {$final_data['q5_state_decision_3']}</span></td>
-  <td colspan="1">Zip: <span class="cls_response_4"> {$final_data['q5_zip_decision_3']}</span></td>  
+  <td colspan="1">Zip: <span class="cls_response_4"> {$final_data['q5_zip_decision_3']}</span></td>
+  </tr>
+  <tr>
   <td colspan="2">Phone: <span class="cls_response_4"> {$final_data['q5_phone_decision_3']}</span></td>
  </tr> 
 </table>
@@ -235,6 +237,15 @@ EOF;
         global $module;
 
         $dd = REDCap::getDataDictionary($module->getProjectId(), 'array');
+        // {$dd['q7_cpr']['field_label']}  //did not use because need to bold main and remove link formatting
+
+        $q7_cpr_label = "<b>CPR (Cardiopulmonary Resuscitation)</b>: Using electric shocks, chest compressions and a breathing tube to try to make the heart beat again and restore breathing after it has stopped";  //{$dd['q7_cpr']['field_label']}
+
+        $q7_breathing_label = "<b>Breathing machine support (ventilator)</b>";
+        $q7_dialyses_label = "<b>Kidney dialysis</b>"; //{$dd['q7_dialyses']['field_label']}
+        $q7_transfusions_label = "<b>Blood transfusions</b>";  //{$dd['q7_transfusions']['field_label']}
+        $q7_food_label = "<b>Artificial food and fluids</b> placed directly into my vein or stomach to give me liquid food.";  //{$dd['q7_food']['field_label']}
+
 
         $q7_decoded = $final_data['q7_cpr'] == 1 ? 'Refuse' : 'Accept';
         $q7_breathing = $final_data['q7_breathing'] == 1 ? 'Refuse' : 'Accept';
@@ -248,34 +259,34 @@ $tbl1 =
 <table class='care_choices' cellspacing="0" cellpadding="1" border="1">
     <tr>
         <th style="width: 60%;">Treatment</th>
-        <th style="width: 10%;">Refuse/Accept</th>
+        <th style="width: 10%;">Refuse/<br>Accept</th>
         <th style="width: 30%;">Specific Instructions<br>(example: for how long)</th>
     </tr>
     <tr>
-        <th class='shazam'> {$dd['q7_cpr']['field_label']}</th>
-        <td class='shazam'> {$q7_decoded}</td>
-        <td class='shazam'> {$final_data['q7_cpr_inst']}</td>
+        <th class='shazam'><span>$q7_cpr_label</span></th>
+        <td class='shazam'>{$q7_decoded}</td>
+        <td class='shazam'>{$final_data['q7_cpr_inst']}</td>
     </tr>
     <tr>
-        <th class='shazam'>  {$dd['q7_breathing']['field_label']}</th>
-        <td class='shazam'> {$q7_breathing}</td>
-        <td class='shazam'> {$final_data['q7_breathing_inst']}</td>
+        <th class='shazam'>$q7_breathing_label</th>
+        <td class='shazam'>{$q7_breathing}</td>
+        <td class='shazam'>{$final_data['q7_breathing_inst']}</td>
     </tr>
     <tr>
         <!-- This will map the LABEL to the field nf_grants field -->
-        <th class='shazam'> {$dd['q7_dialyses']['field_label']}</th>
-        <td class='shazam'> {$q7_dialyses}</td>
-        <td class='shazam'> {$final_data['q7_dialyses_inst']}</td>
+        <th class='shazam'>$q7_dialyses_label</th>
+        <td class='shazam'>{$q7_dialyses}</td>
+        <td class='shazam'>{$final_data['q7_dialyses_inst']}</td>
     </tr>
     <tr>
-        <th class='shazam'> {$dd['q7_transfusions']['field_label']}</th>
-        <td class='shazam'> {$q7_transfusions}</td>
-        <td class='shazam'> {$final_data['q7_transfusions_inst']}</td>
+        <th class='shazam'>$q7_transfusions_label</th>
+        <td class='shazam'>{$q7_transfusions}</td>
+        <td class='shazam'>{$final_data['q7_transfusions_inst']}</td>
     </tr>
     <tr>
-        <th class='shazam'> {$dd['q7_food']['field_label']}</th>
-        <td class='shazam'> {$q7_food}</td>
-        <td class='shazam'> {$final_data['q7_food_inst']}</td>
+        <th class='shazam'>$q7_food_label</th>
+        <td class='shazam'>{$q7_food}</td>
+        <td class='shazam'>{$final_data['q7_food_inst']}</td>
     </tr>
 </table>
 
@@ -293,7 +304,7 @@ return $tbl1;
         $dd = REDCap::getDataDictionary($module->getProjectId(), 'array');
 
         $q8_unconscious_label = nl2br($dd['q8_unconscious']['field_label']);
-        $q8_confused_label = nl2br($dd['q8_confused']['field_label']);
+        $q8_confused_label = "<u>Permanently Confused:</u><ul><li>I cannot and will not be able to recognize my loved ones.</li><li>I am not able to make any health decisions</li></ul>"; //nl2br($dd['q8_confused']['field_label']);
         $q8_living_label = nl2br($dd['q8_living']['field_label']);
         $q8_illness_label = nl2br($dd['q8_illness']['field_label']);
 
@@ -304,37 +315,36 @@ return $tbl1;
 
 $tbl1 =
     <<<EOD
-<div style="color: #962b28;"><b>Allow natural death to happen (do not connect me to machines or disconnect me from machines)</b></div>
+<div style="color: #962b28;"><b>Please allow natural death when: </b></div>
 <table class='natural_death' cellspacing="0" cellpadding="1" border="1"  style="width: 100%;">
-    <colgroup>
-       <col span="1" style="width: 60%;">
-       <col span="1" style="width: 10%;">
-       <col span="1" style="width: 30%;">
-    </colgroup>
     <tr>
-        <th style="width: 60%;">When I become</th>
-        <th style="width: 10%;"></th>
-        <th style="width: 30%;">Special Instructions</th>
+        <td width="40%" colspan="2"><span style="color: #962b28; font-weight: bold">When I become</span></td>
+        <td width="60%" colspan="2"><b><span style="color: #962b28;">Allow natural death to happen</span> (do not connect me to machines or disconnect me from machines)</b></td>
     </tr>
     <tr>
-        <th class='shazam' > {$q8_unconscious_label}</th>
-        <td class='shazam'> {$q8_unconscious}</td>
-        <td class='shazam'> {$final_data['q8_unconscious_inst']}</td>
+        <th width="40%"></th>
+        <th width="20%"></th>
+        <th width="40%">Specific Instructions</th>
+    </tr>    
+    <tr>
+        <th class='shazam'>{$q8_unconscious_label}</th>
+        <td class='shazam'>{$q8_unconscious}</td>
+        <td class='shazam'>{$final_data['q8_unconscious_inst']}</td>
     </tr>
     <tr>
         <th class='shazam'>{$q8_confused_label}</th>
-        <td class='shazam'> {$q8_confused}</td>
-        <td class='shazam'> {$final_data['q8_confused_inst']}</td>
+        <td class='shazam'>{$q8_confused}</td>
+        <td class='shazam'>{$final_data['q8_confused_inst']}</td>
     </tr>
     <tr>
-        <th class='shazam'> {$q8_living_label}</th>
-        <td class='shazam'> {$q8_living}</td>
-        <td class='shazam'> {$final_data['q8_living_inst']}</td>
+        <th class='shazam'>{$q8_living_label}</th>
+        <td class='shazam'>{$q8_living}</td>
+        <td class='shazam'>{$final_data['q8_living_inst']}</td>
     </tr>
     <tr>
-        <th class='shazam'> {$q8_illness_label}</th>
-        <td class='shazam'> {$q8_illness}</td>
-        <td class='shazam'> {$final_data['q8_illness_inst']}</td>
+        <th class='shazam'>{$q8_illness_label}</th>
+        <td class='shazam'>{$q8_illness}</td>
+        <td class='shazam'>{$final_data['q8_illness_inst']}</td>
     </tr>
 </table>
 
@@ -465,31 +475,33 @@ return $pdf;
         $pdf->Ln(10);
         $pdf->writeHTMLCell(185, 5, '', '', '<b>After a person passes away, their organs and tissues (eyes, kidneys, liver, heart, skin etc.) can be donated to help other people who are ill.</b>');
         $pdf->Ln(6);
-
+//1, I will donate any of my organs and tissues | 2, I will donate the following organs, tissues only | 3, I do NOT want to donate my organs or tissues | 4, I do NOT want to decide now. My agent can decide later.
         $pdf->Ln(10);
         $pdf->RadioButton('q13', 5, array(), array(), '1',  $final_data['q13'] == 1 ? true : false);
-        $pdf->Cell(70, 5, 'I do NOT want to donate my organs or tissues after I pass away');
-        $pdf->Ln(10);
-        $pdf->RadioButton('q13', 5, array(), array(), '2',  $final_data['q13'] == 2 ? true : false);
-        $pdf->Cell(70, 5, ' I do NOT want to decide now. my proxy can decide later.');
-        $pdf->Ln(10);
-        $pdf->RadioButton('q13', 5, array(), array(), '3',  $final_data['q13'] == 3 ? true : false);
         $pdf->Cell(70, 5, 'I will donate any of my organs and tissues after I pass away');
         $pdf->Ln(10);
-        $pdf->RadioButton('q13', 5, array(), array(), '4',  $final_data['q13'] == 4 ? true : false);
+        $pdf->RadioButton('q13', 5, array(), array(), '2',  $final_data['q13'] == 2 ? true : false);
         $pdf->Cell(70, 5, 'I will donate the following organs, tissues only:');
         $pdf->Ln(10);
-
         $pdf->Cell(5,5,'');
-        $pdf->TextField('q9_99_other', 150, 18, array('multiline'=>true, 'lineWidth'=>0, 'borderStyle'=>'none'), array('v'=> $final_data['q13_donate_following']));
+        $pdf->TextField('q13_donate_following', 150, 18, array('multiline'=>true, 'lineWidth'=>0, 'borderStyle'=>'none'), array('v'=> $final_data['q13_donate_following']));
         $pdf->Ln(19);
 
         $pdf->Ln(10);
+        $pdf->RadioButton('q13', 5, array(), array(), '3',  $final_data['q13'] == 3 ? true : false);
+        $pdf->Cell(70, 5, 'I do NOT want to donate my organs or tissues after I pass away');
+        $pdf->Ln(10);
+        $pdf->RadioButton('q13', 5, array(), array(), '4',  $final_data['q13'] == 4 ? true : false);
+        $pdf->Cell(70, 5, ' I do NOT want to decide now. My agent can decide later.');
+
+
+
+        $pdf->Ln(20);
         $pdf->writeHTMLCell(185, 5, '', '', '<b>Please check below to give permission:</b>');
 
         $pdf->Ln(10);
         $pdf->CheckBox('q14', 5, $final_data['q14___1'] == 1, array(), array());
-        $pdf->Cell(70, 5, 'My proxy can make funeral arrangements when needed');
+        $pdf->Cell(70, 5, 'My agent can make funeral arrangements when needed');
         $pdf->Ln(10);
 
         $pdf->Ln(10);
@@ -530,7 +542,7 @@ color:#1b1fff;
 <div class="cls_section">
 <span> Part 4: Sign the Form and have two witnesses co-sign</span></div>
 
-<div class="">I cancel any prior Power of Attorney for Health Care or Natural Death Act Declaration. My proxy and others may use copies of this document as though they were originals.</div>
+<div class="">I cancel any prior Power of Attorney for Health Care or Natural Death Act Declaration. My health care agent and others may use copies of this document as though they were originals.</div>
 <div class="cls_question">Sign your name and write the date:</div><br>
 <table border="0" cellpadding="2" cellspacing="2" nobr="true">
 <tr>
@@ -606,12 +618,12 @@ color:#1b1fff;
  <div class="pt-1">
  I am 18 years of age or older and I promise that:
 <ul>
-  <li>I know this person or they could prove who they were</li>
-    <li>This person was thinking clearly and was not forced to sign this document.</li>
-  <li>I am not their medical decision maker</li>
+  <li>I know this person or their identity has been proved to me with convincing evidence</li>
+  <li>This person was thinking clearly and was not forced to sign this document while in my presence</li>
+  <li>I am not their agent</li>
   <li>I am not providing health care for this person</li>
   <li>I do not work for this person’s health care provider</li>
-  <li>I do not work for where they live (e.g. their nursing home if applicable)</li>
+  <li>I do not work for the facility or the institution where they live (e.g. their nursing home if applicable)</li>
   </ul>
 </div>
 <div class="cls_question">Witness #1</div><br>
