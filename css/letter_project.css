@@ -57,6 +57,16 @@
     width:100%;
 }
 
+.send-pdf,.send-invite,.proxy_email_input {
+    padding-top: 8px;
+    padding-bottom: 8px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border: 3px solid #CCCCCC;
+    width:80%;
+    height:80%;
+}
+
 .form-group.greyed {
     border: none;
     width:100%;

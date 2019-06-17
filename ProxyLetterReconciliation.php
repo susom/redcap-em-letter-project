@@ -4,6 +4,7 @@ namespace Stanford\LetterProject;
 /** @var \Stanford\LetterProject\LetterProject $module */
 
 use \REDCap as REDCap;
+use DateTime;
 use Stanford\SurveyDashboard\Participant;
 include_once "LetterPDF.php";
 use Stanford\LetterProject\LetterPDF;
@@ -22,12 +23,16 @@ $image_url = $module->getUrl('images/stanford-healthcre.png',true,true );
 // HANDLE AJAX POST REQUESTS
 if (!empty($_POST['action'])) {
     $action = $_POST['action'];
+    $record = $_POST['record_id'];
+
+    $module->emDebug("=======================".$action);
 
 
     if ($action == 'saveResponse') {
+        //save the timestamp
+        $module->saveTimestamp($module->getProjectId(), $record, $module->getProjectSetting('first-event'));
+
         //persist current set of responses
-
-
         $event_id = $module->getProjectSetting('final-event');
         $event_name = REDCap::getEventNames(true,false, $event_id);
 
@@ -62,16 +67,13 @@ if (!empty($_POST['action'])) {
 
         try {
             $q = sendEmailPDF($record, $emails);
-        }catch (Exception $e) {
-            $result = array("result" => "fail","message" => $e->getMessage());
+            //todo: check send status
+            $module->emDebug("EMAILING PDF", $q);
+            $result = array("result" => "success", "message" => "Your emails were sent to these addresses: \n" . implode("\n", $emails));
         }
-
-
-        //todo: check send status
-
-        $result = array("result" => "success","message" => "Your emails were sent to these addresses: \n".implode("\n",$emails));
-
-
+        catch (Exception $e) {
+            $result = array("result" => "fail", "message" => $e->getMessage());
+        }
     }
 
     if ($action == 'downloadPDF') {
@@ -98,6 +100,21 @@ if (!empty($_POST['action'])) {
 
     }
 
+    if ($action == 'saveNewEmail') {
+        $record = $_POST['record_id'];
+        $event = $_POST['event'];
+        $email = $_POST['data'];
+
+        $status = $module->saveNewEmail($record, $email, $event);
+            //todo: check send status
+        $module->emDebug("Saving MEW EMAIL ", $q);
+        if ($status) {
+            $result = array("result" => "success", "message" => "A new email $email was added as a proxy");
+        } else {
+            $result = array("result" => "fail", "message" => "There was an error attempting to save the email.");
+        }
+    }
+
     if ($action == 'checkWitnessForm') {
         //get surveyURL for final witness form
         $event_id = $module->getProjectSetting('final-event');
@@ -109,7 +126,6 @@ if (!empty($_POST['action'])) {
 
         $module->emDebug($survey_link);
     }
-
 
 
     header('Content-Type: application/json');
@@ -316,6 +332,8 @@ function renderTabDivs($record) {
     $responses = organizeResponses($record);
     //$module->emDebug($responses);
 
+    $maker_data = getDecisionMakerData($record);
+
     $q = REDCap::getData(
         'json',
         $record,
@@ -337,6 +355,8 @@ function renderTabDivs($record) {
     $metadata = $Proj->metadata;
 
     $divs = array();
+
+    /**
     $divs[] = "
                 <div id='home' class='tab-pane active in'>
                     <!--p>Home</p-->
@@ -348,6 +368,8 @@ function renderTabDivs($record) {
                         <p<>We will make every effort to respect and honor your wishes and choices.</p>
                     </div>
                     </div>";
+     */
+    $divs[] = "<div id='" . "home" . "' class='tab-pane active in'>". getDecisionMakerPage($maker_data);  // ."</div>";
     $divs[] = renderNavButtons(false, true, false);
     $divs[] .="</div>";
 
@@ -373,6 +395,229 @@ function renderTabDivs($record) {
     print implode("", $divs);
 }
 
+
+
+function getDecisionMakerPage($maker_data) {
+    global $module;
+    $module->emDebug($maker_data);
+
+//    $str = "<div class=\"jumbotron text-center\">
+//                    <div id='pdf_page_one'>this is the print page. Perhaps some PDF here?</div>
+//                    </div>";
+
+    $str =
+        '
+        <div class="card-deck mb-3 text-center">
+        
+          <div class="card mb-4 box-shadow">
+          <div class="card-body">
+             <button type="button" id="btn-download-pdf" class="btn btn-lg btn-block btn-primary">Download</button>
+             <ul class="list-unstyled mt-3 mb-4">
+               <li>Download to your local drive</li>            
+              </ul>
+          </div>
+        </div>
+          
+          <div class="card mb-4 box-shadow">
+          <div class="card-body">
+            <button type="button" id="btn-print-pdf" class="btn btn-lg btn-block btn-primary">View My Letter</button>
+            <ul class="list-unstyled mt-3 mb-4">
+              <li>A new tab will open to display the letter and present a menu to print to your printer</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div>
+        
+</div>
+        
+        </div>';
+
+    /**
+
+    $maker_data = array();
+    $maker_data[1] = array("one", "two", "three");
+    $maker_data[2] = array("one2", "two", "three");
+    $maker_data[3] = array("one3", "two", "three");
+
+$maker_data = getDecisionMakerData($record);
+*/
+    //make table with the decisiion makers
+    $table =  "<table id='decision_maker' style='border: 1px solid #fefefe; border-spacing:1px; width:100%;'>";
+    $table .= "<tr><th>My Decision Makers</th><th>Status</th><th>Send PDF of my letter</th></tr>";
+    foreach ($maker_data as $k => $v) {
+        $table .= "<tr>";
+        foreach ($v as $row => $element) {
+            $table .= "<td>$element</td>";
+        }
+        $table .= "</tr>";
+
+    }
+    $table .="</table>";
+
+    return $str.$table;
+}
+
+function getDecisionMakerData($record_id) {
+    global $module;
+
+    $email_field = $module->getProjectSetting('code-field');
+    $proxy_1_field = $module->getProjectSetting('proxy-1-field');
+    $proxy_2_field =  $module->getProjectSetting('proxy-2-field');
+    $proxy_3_field = $module->getProjectSetting('proxy-3-field');
+    $date_last_reconciled =  $module->getProjectSetting('date-last-reconciled');
+
+    $params = array(
+            'project_id' => $module->getProjectId(),
+            'return_format' => 'json',
+            'events' => array($module->getProjectSetting('first-event')),
+            'fields' => array(
+                $email_field, //$module->getProjectSetting('code-field'),
+                $proxy_1_field, //$module->getProjectSetting('proxy-1-field'),
+                $proxy_2_field, //$module->getProjectSetting('proxy-2-field'),
+                $proxy_3_field, //$module->getProjectSetting('proxy-3-field')
+                $date_last_reconciled
+            ),
+            'records' => $record_id
+    );
+    $data = REDCap::getData($params);
+
+        //$q = \REDCap::getData($module->getProjectId(), 'json',  array($record_id), null, $module->getProjectSetting('final-event'));
+    $final_data = json_decode($data, true);
+        //$module->emDebug($params,$module->getProjectId(),$module->getProjectSetting('final-event'), $final_data, $record_id, "FINAL DATA");
+
+        //
+    $module->emDebug($params,$final_data);
+    $final_data = current($final_data);
+
+    $send_data[$email_field]['email'] = $final_data[$email_field];
+    $send_data[$proxy_1_field]['email'] = $final_data[$proxy_1_field];
+    $send_data[$proxy_2_field]['email'] = $final_data[$proxy_2_field];
+    $send_data[$proxy_3_field]['email'] = $final_data[$proxy_3_field];
+
+    //now get the completion status
+    $main_status = getCompletionStatus($module->getProjectSetting('first-event'), $record_id);
+    $event_1_status = getCompletionStatus($module->getProjectSetting('proxy-1-event'), $record_id);
+    $event_2_status = getCompletionStatus($module->getProjectSetting('proxy-2-event'), $record_id);
+    $event_3_status = getCompletionStatus($module->getProjectSetting('proxy-3-event'), $record_id);
+
+    $completion_field = $module->getProjectSetting('letter-survey').'_complete';
+    $timestamp_field = $module->getProjectSetting('letter-survey').'_timestamp';
+
+    $send_data[$email_field]['status'] = $main_status[$completion_field];
+    $send_data[$proxy_1_field]['status'] = $event_1_status[$completion_field];
+    $send_data[$proxy_2_field]['status'] = $event_2_status[$completion_field];
+    $send_data[$proxy_3_field]['status'] = $event_3_status[$completion_field];
+    $send_data[$email_field]['timestamp'] = $main_status[$timestamp_field];
+    $send_data[$proxy_1_field]['timestamp'] = $event_1_status[$timestamp_field];
+    $send_data[$proxy_2_field]['timestamp'] = $event_2_status[$timestamp_field];
+    $send_data[$proxy_3_field]['timestamp'] = $event_3_status[$timestamp_field];
+
+    $module->emDebug($send_data);
+
+    $return_data = array();
+    foreach ($send_data as $event => $row) {
+        $module->emDebug("EVENT is ".$event);
+        $return_data[] = getSurveyStatus($record_id, $row, $final_data[$date_last_reconciled], $event);
+
+
+    }
+
+    $module->emDebug($return_data);
+
+    return $return_data;
+
+}
+
+/**
+ *
+ * Possible Survey Status
+ * Waiting for response  =>  not completed
+ * Completed      => survey_complete == 2  AND ( survey_timestamp > last_reconciled_timestamp )
+ * Pending review => survey_complete==2 AND ( survey_timestamp < last_reconciled_timestamp )
+ * Send proxy invitation button  => No decision maker email
+ * Just trigger save of the form to trigger the autonotify?
+ *
+ * @param $row  :
+ *
+ */
+function getSurveyStatus($record_id, $row, $last_timestamp_str, $event) {
+    global $module;
+
+    $module->emDebug($last_timestamp_str, $row);
+    $email = $row['email'];
+    $status = $row['status'];
+
+    $ts_string = $row['timestamp'];
+    $ts = new DateTime($ts_string);
+    $last_ts = new DateTime($last_timestamp_str);
+
+    $module->emDebug($ts, $last_ts);
+
+    //default for email
+
+    if ($status == 2) {
+        if ($ts > $last_ts) {
+            //finished survey was completed before last reconciled
+            $module->emDebug('Pending' . $ts->getTimestamp() . ' is less than '. $last_ts->getTimestamp());
+            $completion_status = 'Pending Review';
+
+        } else {
+
+            $module->emDebug('COMPLETED' . $ts->getTimestamp() . ' is greater than '. $last_ts->getTimestamp());
+            $completion_status = 'Completed';
+        }
+        $button_html = '<button id="'. $email .'" class="btn btn-lg btn-block btn-primary send-pdf" data-id="'. $record_id .'" data-email="'. $email .'" name="send">SEND to '.$email.'</button>';
+    } else {
+        //if there is an email, then waiting
+        if (!empty($email)) {
+            $completion_status = 'Waiting for response';
+            $button_html = '<button id="'. $email .'" class="btn btn-lg btn-block btn-primary send-pdf" data-id="'. $record_id .'" data-email="'. $email .'" name="send">SEND to '.$email.'</button>';
+        } else {
+            //create a text field for
+            $completion_status = '<button id="'. $email .'" class="btn btn-lg btn-block btn-primary send-invite" data-id="'. $record_id .'" data-event="'. $event .'" name="send">SEND invitation to new proxy</button>';
+            //$email ='Enter another proxy:<br> <input type="text" name="fname">';
+            $email =' <input class="proxy_email_input" type="text" id="proxy_email_'.$event.'" placeholder="Enter another proxy email.">';
+                $foo = '<div>
+                <input type="text" id="proxy" placeholder="Enter another proxy email."/>
+            </div>';
+            //$button_html = '<button id="email_holder" class="btn btn-lg btn-block btn-primary send-invite"  data-id="'. $record_id .'" data-event="'. $event .'"  name="send-invite">SEND invitation to new proxy</button>';
+            $button_html = '';
+
+        }
+    }
+
+
+    //button
+
+    return array($email, $completion_status, $button_html);
+
+}
+
+
+function getCompletionStatus($event, $record) {
+    global $module;
+
+    $completion_field = $module->getProjectSetting('letter-survey').'_complete';
+    $timestamp_field = $module->getProjectSetting('letter-survey').'_timestamp';
+
+    $params = array(
+        'project_id' => $module->getProjectId(),
+        'return_format' => 'json',
+        'events' => $event,
+        'exportSurveyFields' => true,
+        'fields' => array($completion_field, $timestamp_field),
+        'records' => $record
+    );
+    $data = REDCap::getData($params);
+    $final_data = json_decode($data, true);
+    $module->emDebug($event, $params,$final_data);
+    if (!empty($final_data)) {
+        return current($final_data);
+    }
+    return null;
+
+}
 
 function getPDFPage($proxy) {
     global $module;
@@ -432,6 +677,8 @@ function getPDFPage($proxy) {
 
     return $str;
 }
+
+
 /**
  * Helper method to get the choice list from the metadata.
  *
@@ -940,12 +1187,14 @@ function renderAnswers($question_num, $orig, $p1, $p2, $p3, $final, $proxy) {
 function sendEmailPDF($record_id, $emails) {
     global $module;
 
-    $module->emDebug("Send Email 1");
+    $module->emDebug("Send Email 1 to ".$record_id, empty($record_id), $record_id == '');
     //1. generate the PDF file
-    if (isset($record_id)) {
+    if (!empty($record_id)) {
         $pdf = $module->setupLetter($record_id);
     } else {
-        throw new Exception("Email was not sent as the record field is undefined.");
+        $msg = "Email was not sent as the record field is undefined.";
+        $module->emDebug($msg);
+        throw new Exception($msg);
     }
     $module->emDebug("Send Email 2: got pdf");
 

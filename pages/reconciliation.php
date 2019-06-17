@@ -47,7 +47,7 @@ namespace Stanford\LetterProject;
     <!--link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"-->
     <!--script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script-->
     <!--script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script-->
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <!--script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script-->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" crossorigin="anonymous"></script>
@@ -303,6 +303,99 @@ namespace Stanford\LetterProject;
                 });
 
             return false;
+        });
+
+        $('#decision_maker').on('click', 'button.send-invite', function () {
+            buttonpressed = $(this).attr('name'); //todo: merge with teh other button press
+
+            var event = $(this).data('event');
+            var email_str = 'proxy_email_'+event;
+            var email = $('#proxy_email_'+event).val();
+            var participant_id = $(this).data('id');
+
+
+            console.log("EMAIL is ", email);
+            console.log("EVENT is ", event);
+            console.log("BUTTONPRESSED is ", buttonpressed);
+
+            var data = {
+                "action": "saveNewEmail",
+                "record_id": participant_id,
+                "event" : event,
+                "data": email
+            }
+
+            console.log(data);
+
+            var ajax = $.ajax({
+                type: "POST",
+                data: data,
+                dataType: "json"
+            })
+                .done(function(data) {
+                    if(data.result == "success") {
+                        location.reload();
+
+                        // An error occurred
+                        alert (data.message);
+                        console.log('New email saved '+email);
+
+                    } else {
+                        //alert ("Your entries has been saved.");
+                        alert (data.message);
+
+                    }
+                })
+                .fail(function() {
+                    alert ('Email PDF Failed!');
+                    console.log( "error saving responses : statusText:  " + jqxhr.statusText);
+                    console.log( "error saving responses : status: " + jqxhr.status);
+                })
+                .always(function() {
+
+                });
+        });
+
+
+        $('#decision_maker').on('click', 'button.send-pdf', function () {
+            buttonpressed = $(this).attr('name');
+
+            var email = $(this).data('email');
+            var participant_id = $(this).data('id');
+
+            console.log("EMAIL is ", email);
+            console.log("BUTTONPRESSED is ", buttonpressed);
+
+            var data = {
+                "action": "emailPDF",
+                "record_id": participant_id,
+                "data": [email]
+            }
+
+            console.log(data);
+
+            var ajax = $.ajax({
+                type: "POST",
+                data: data,
+                dataType: "json"
+            })
+                .done(function(data) {
+                    if(data.result !== "success") {
+                        // An error occurred
+                        alert (data.message);
+                    } else {
+                        //alert ("Your entries has been saved.");
+                        alert (data.message);
+                    }
+                })
+                .fail(function() {
+                    alert ('Email PDF Failed!');
+                    console.log( "error saving responses : statusText:  " + jqxhr.statusText);
+                    console.log( "error saving responses : status: " + jqxhr.status);
+                })
+                .always(function() {
+
+                });
         });
 
 

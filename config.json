@@ -79,6 +79,12 @@
       "type": "form-list"
     },
     {
+      "key": "date-last-reconciled",
+      "name": "<b>Date last reconciled field</b>",
+      "required": false,
+      "type": "field-list"
+    },
+    {
       "key": "letter-survey",
       "name": "<b>Letter Survey</b>",
       "required": false,
@@ -152,11 +158,22 @@
       "repeatable": true
     },
     {
-      "key": "events",
-      "name": "<b>Events</b>",
+      "key": "proxy-1-event",
+      "name": "<b>Proxy 1 Event</b>",
       "required": false,
-      "type": "event-list",
-      "repeatable": true
+      "type": "event-list"
+    },
+    {
+      "key": "proxy-2-event",
+      "name": "<b>Proxy 2 Event</b>",
+      "required": false,
+      "type": "event-list"
+    },
+    {
+      "key": "proxy-3-event",
+      "name": "<b>Proxy 3 Event</b>",
+      "required": false,
+      "type": "event-list"
     }
   ]
 }

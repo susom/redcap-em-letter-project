@@ -248,6 +248,55 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
         }
     }
 
+    public function saveNewEmail($record, $email, $email_event)
+    {
+        $this->emDebug($record, $email, $email_event);
+        //figure out which event to save the new email
+        $event = '';
+        switch ($email_event) {
+            case 'email_proxy_1':
+                $event = $this->getProjectSetting('proxy-1-event');
+                $email_field = $this->getProjectSetting('proxy-1-field');
+                break;
+            case 'email_proxy_2':
+                $event = $this->getProjectSetting('proxy-2-event');
+                $email_field = $this->getProjectSetting('proxy-2-field');
+                break;
+            case 'email_proxy_3':
+                $event = $this->getProjectSetting('proxy-3-event');
+                $email_field = $this->getProjectSetting('proxy-3-field');
+                break;
+        }
+        $this->emDebug($event . " from " . $email_event);
+
+
+        $data = array(
+            REDCap::getRecordIdField() => $record,
+            'redcap_event_name' => REDCap::getEventNames(true,false, $this->getProjectSetting('first-event')),
+            $email_field        => $email
+        );
+
+        $q= REDCap::saveData('json', json_encode(array($data)));
+
+        if (count($q['errors']) > 0) {
+            $this->emError($q, "Error saving proxy emails", "ERROR");
+            REDCap::logEvent(
+                "Unable to add new proxy email. ",  //action
+                "Error while adding new proxy email $email for $event with this error".$q['errors'],
+                NULL, //sql optional
+                $record //record optional
+            );
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+
+
+
     public function setProxyEmails($project_id, $record, $instrument) {
         //get the data for the selected emails
          $q = REDCap::getData(
@@ -313,6 +362,36 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
         }
 
     }
+
+    public function saveTimestamp($project_id, $record, $event_id) {
+        $event_name = REDCap::getEventNames(true, false, $event_id);
+
+        $timestamp = date('Y-m-d H:i:s');
+
+        $data = array(
+            REDCap::getRecordIdField() => $record,
+            'redcap_event_name' => $event_name,
+            $this->getProjectSetting('date-last-reconciled') => $timestamp
+        );
+
+        $this->emDebug($event, $data);
+
+        $q = REDCap::saveData('json', json_encode(array($data)));
+
+        if (!empty($q['errors'])) {
+            $msg = "Error saving timestamp for record $record - ask administrator to review logs: " . $q['errors'];
+            $this->emError($msg);
+            REDCap::logEvent(
+                "Error saving reconciliation timestamp.",  //action
+                $msg,
+                NULL, //sql optional
+                $record //record optional
+            );
+
+        }
+    }
+
+
 
     public function setHash($project_id, $record, $instrument)
     {
