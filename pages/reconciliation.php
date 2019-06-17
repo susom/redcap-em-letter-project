@@ -185,7 +185,7 @@ namespace Stanford\LetterProject;
 
             //update the PDF
             updatePDF();
-            $('.nav-tabs a[href="#print_page"]').tab('show');
+            $('.nav-tabs a[href="#home"]').tab('show');
 
         });
 

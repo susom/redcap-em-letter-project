@@ -70,13 +70,13 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
             <form id="survey_complete" method="POST" action="<?php echo $hash_url ?>">
                 <input type="hidden" name="code" value="<?php echo $email_code ?>"/>
                 <input type="hidden" name="login" value="1"/>
-                <input type="hidden" name="print_page" value="1"/>
+                <input type="hidden" name="home" value="1"/>
 
             </form>
             <script>
                 $('#survey_complete').submit();
                 $(document).ready(function () {
-                    $('.nav-tabs a:last').tab('show');
+                    $('.nav-tabs a[href="#home"]').tab('show');
                 });
             </script>
             <?php
