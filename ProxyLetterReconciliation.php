@@ -446,7 +446,7 @@ function getDecisionMakerPage($maker_data) {
 $maker_data = getDecisionMakerData($record);
 */
     //make table with the decisiion makers
-    $table =  "<table id='decision_maker' style='border: 1px solid #fefefe; border-spacing:1px; width:100%;'>";
+    $table =  "<div class='decision_maker'><table id='decision_maker'>";
     $table .= "<tr><th>My Decision Makers</th><th>Status</th><th>Send PDF of my letter</th></tr>";
     foreach ($maker_data as $k => $v) {
         $table .= "<tr>";
@@ -456,7 +456,7 @@ $maker_data = getDecisionMakerData($record);
         $table .= "</tr>";
 
     }
-    $table .="</table>";
+    $table .="</table></div>";
 
     return $str.$table;
 }

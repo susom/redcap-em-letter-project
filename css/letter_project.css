@@ -184,8 +184,15 @@ hr {
 
 
 
-
-
+.decision_maker{
+    border-radius:10px;
+    background:#fff;
+    padding:20px;
+    margin-bottom:20px;
+}
+.decision_maker table{
+    width:100%;
+}
 
 .btn-footer{
     overflow:hidden;
