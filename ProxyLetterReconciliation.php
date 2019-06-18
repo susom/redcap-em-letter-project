@@ -79,7 +79,7 @@ if (!empty($_POST['action'])) {
     if ($action == 'downloadPDF') {
         $record = $_POST['record_id'];
 
-        $letter_url = $module->getUrl("GetLetter.php", false,true);
+        $letter_url = $module->getUrl("GetLetter.php", true,true);
         $redirect_url = $letter_url."&action=D&id=".$record;
 
         //redirect($redirect_url);
@@ -91,7 +91,7 @@ if (!empty($_POST['action'])) {
     if ($action == 'printPDF') {
         $record = $_POST['record_id'];
 
-        $letter_url = $module->getUrl("GetLetter.php", false,true);
+        $letter_url = $module->getUrl("GetLetter.php", true,true);
         $redirect_url = $letter_url."&action=P&id=".$record;
 
         //redirect($redirect_url);
@@ -417,15 +417,6 @@ function getDecisionMakerPage($maker_data) {
         '
         <div class="card-deck mb-3 text-center">
         
-          <div class="card mb-4 box-shadow">
-          <div class="card-body">
-             <button type="button" id="btn-download-pdf" class="btn btn-lg btn-block btn-primary">Download</button>
-             <ul class="list-unstyled mt-3 mb-4">
-               <li>Download to your local drive</li>            
-              </ul>
-          </div>
-        </div>
-          
           <div class="card mb-4 box-shadow">
           <div class="card-body">
             <button type="button" id="btn-print-pdf" class="btn btn-lg btn-block btn-primary">View My Letter</button>

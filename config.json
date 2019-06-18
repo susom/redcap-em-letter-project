@@ -29,13 +29,14 @@
       {
         "name": "Get Letter PDF",
         "icon": "gear",
-        "url": "GetLetter.php"
+        "url": "GetLetter.php?NOAUTH"
       }
     ]
   },
 
   "no-auth-pages": [
-    "ProxyLetterReconciliation"
+    "ProxyLetterReconciliation",
+    "GetLetter"
   ],
 
   "system-settings": [
