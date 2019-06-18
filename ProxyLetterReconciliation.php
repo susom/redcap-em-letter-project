@@ -775,7 +775,7 @@ function formatPrintAnswers($question_num, $field_type, $response) {
 
             $i=1;
             foreach ($coded as $code => $proxy_num) {
-                $q .= "<label>";
+                $q .= "<label class='disabled'>";
                 $q .= "<input name='" . $q_label . "_" . $i . "' $disabled  type=\"checkbox\"";
                 if ($response[$code]) {
                     $q .= " checked = checked";
@@ -804,8 +804,8 @@ function formatPrintAnswers($question_num, $field_type, $response) {
                 $q .= '<form>';
                 $i = 1;
                 foreach ($coded as $code => $proxy_num) {
-                    $q .= "<label>";
-                    $q .= "<input name='" . $q_label . "' value=" . $i . " $disabled type=\"radio\"";
+                    $q .= "<label class='disabled'>";
+                    $q .= "<input name='" . $q_label . "' value=" . $i . " disabled type=\"radio\"";
                     if ((isset($part1)) && ($part1 == $code)) {
                         $q .= " checked='checked'";
                     }
@@ -824,8 +824,8 @@ function formatPrintAnswers($question_num, $field_type, $response) {
                 $q .= '<form>';
                 $i=1;
                 foreach ($coded as $code => $proxy_num) {
-                    $q .= "<label>";
-                    $q .= "<input name='" . $q_label . "' value=" . $i . " $disabled type=\"radio\"";
+                    $q .= "<label class='disabled'>";
+                    $q .= "<input name='" . $q_label . "' value=" . $i . " disabled type=\"radio\"";
                     if ((isset($part1)) && ($part1 == $code) ) {
                         $q .= " checked='checked'";
                     }
@@ -843,8 +843,8 @@ function formatPrintAnswers($question_num, $field_type, $response) {
                 $q .= '<form>';
                 $i = 1;
                 foreach ($coded as $code => $proxy_num) {
-                    $q .= "<label>";
-                    $q .= "<input name='" . $q_label . "' value=" . $i . " $disabled type=\"radio\"";
+                    $q .= "<label class='disabled'>";
+                    $q .= "<input name='" . $q_label . "' value=" . $i . " disabled type=\"radio\"";
                     if ((isset($response)) && ($response == $code)) {
                         $q .= " checked='checked'";
                     }
@@ -873,8 +873,8 @@ function formatPrintAnswers($question_num, $field_type, $response) {
                 $part2 =  $response['part2'];
                 $i=1;
                 foreach ($coded as $code => $proxy_num) {
-                    $q .= "<label>";
-                    $q .= "<input name='" . $q_label . " value=" . $i . "' $disabled type=\"radio\"";
+                    $q .= "<label class='disabled'>";
+                    $q .= "<input name='" . $q_label . " value=" . $i . "' disabled type=\"radio\"";
                     if ((isset($part1)) && ($part1 == $code) ) {
                         $q .= " checked='checked'";
                     }
@@ -887,8 +887,8 @@ function formatPrintAnswers($question_num, $field_type, $response) {
             } else {
                 $i = 1;
                 foreach ($coded as $code => $proxy_num) {
-                    $q .= "<label>";
-                    $q .= "<input name='" . $q_label . " value=" . $i . "' $disabled type=\"radio\"";
+                    $q .= "<label class='disabled'>";
+                    $q .= "<input name='" . $q_label . " value=" . $i . "' disabled type=\"radio\"";
                     if ((isset($response)) && ($response == $code)) {
                         $q .= " checked='checked'";
                     }
