@@ -776,7 +776,7 @@ function formatPrintAnswers($question_num, $field_type, $response) {
             $i=1;
             foreach ($coded as $code => $proxy_num) {
                 $q .= "<label>";
-                $q .= "<input name=" . $q_label . "_" . $i . " $disabled  type=\"checkbox\"";
+                $q .= "<input name='" . $q_label . "_" . $i . "' $disabled  type=\"checkbox\"";
                 if ($response[$code]) {
                     $q .= " checked = checked";
                 }
@@ -785,9 +785,8 @@ function formatPrintAnswers($question_num, $field_type, $response) {
             }
             if ($question_num == "q9") {
                 $response_other = $response['q9_99_other'];
-                $q .= "<textarea $readonly class=\"text_answer\" id=\"$q_label\" name=\"$q_label\" rows=\"3\">$response_other</textarea>";
+                $q .= "<p class='text_answer other'>$response_other</p>";
             }
-
             break;
         case "radio":
             //handle the radio formats
@@ -806,7 +805,7 @@ function formatPrintAnswers($question_num, $field_type, $response) {
                 $i = 1;
                 foreach ($coded as $code => $proxy_num) {
                     $q .= "<label>";
-                    $q .= "<input name=" . $q_label . " value=" . $i . " $disabled type=\"radio\"";
+                    $q .= "<input name='" . $q_label . "' value=" . $i . " $disabled type=\"radio\"";
                     if ((isset($part1)) && ($part1 == $code)) {
                         $q .= " checked='checked'";
                     }
@@ -815,7 +814,7 @@ function formatPrintAnswers($question_num, $field_type, $response) {
                     $i++;
                 }
                 $q .= '</form>';
-                $q .= "<p class='text_answer'>$part2</p>";
+                $q .= "<p class='text_answer other'>$part2</p>";
             } elseif ($prefix == "q8") {
                 $module->emLog("2PREFIX IS SDF".$prefix);
                 $question_num = $prefix;
@@ -826,7 +825,7 @@ function formatPrintAnswers($question_num, $field_type, $response) {
                 $i=1;
                 foreach ($coded as $code => $proxy_num) {
                     $q .= "<label>";
-                    $q .= "<input name=" . $q_label . " value=" . $i . " $disabled type=\"radio\"";
+                    $q .= "<input name='" . $q_label . "' value=" . $i . " $disabled type=\"radio\"";
                     if ((isset($part1)) && ($part1 == $code) ) {
                         $q .= " checked='checked'";
                     }
@@ -835,28 +834,28 @@ function formatPrintAnswers($question_num, $field_type, $response) {
                     $i++;
                 }
                 $q .= '</form>';
-                $q .= "<p class='text_answer'>$part2</p>";
+                $q .= "<p class='text_answer other'>$part2</p>";
             } else {
                 if ($question_num == "q13") {
-                    $q13_other = $response['q13_donate_following'];
-                    $response = $response['q13'];
+                    $q13_other  = $response['q13_donate_following'];
+                    $response   = $response['q13'];
                 }
                 $q .= '<form>';
                 $i = 1;
                 foreach ($coded as $code => $proxy_num) {
                     $q .= "<label>";
-                    $q .= "<input name=" . $q_label . " value=" . $i . " $disabled type=\"radio\"";
+                    $q .= "<input name='" . $q_label . "' value=" . $i . " $disabled type=\"radio\"";
                     if ((isset($response)) && ($response == $code)) {
                         $q .= " checked='checked'";
                     }
                     $q .= "/> $proxy_num";
                     $q .= "</label>";
+                    if ($question_num == "q13" && $i == 2) {
+                        $q .= "<p class='text_answer other q13'>$q13_other</p>";
+                    }
                     $i++;
                 }
                 $q .= '</form>';
-                if ($question_num == "q13") {
-                    $q .= "<p class='text_answer'>$q13_other</p>";
-                }
             }
             break;
         case "yesno":
@@ -875,7 +874,7 @@ function formatPrintAnswers($question_num, $field_type, $response) {
                 $i=1;
                 foreach ($coded as $code => $proxy_num) {
                     $q .= "<label>";
-                    $q .= "<input name=" . $q_label . " value=" . $i . " $disabled type=\"radio\"";
+                    $q .= "<input name='" . $q_label . " value=" . $i . "' $disabled type=\"radio\"";
                     if ((isset($part1)) && ($part1 == $code) ) {
                         $q .= " checked='checked'";
                     }
@@ -884,12 +883,12 @@ function formatPrintAnswers($question_num, $field_type, $response) {
                     $i--;
                 }
                 $inst_label = $q_label."_inst";
-                $q .= "<p class='text_answer'>$part2</p>";
+                $q .= "<p class='text_answer other'>$part2</p>";
             } else {
                 $i = 1;
                 foreach ($coded as $code => $proxy_num) {
                     $q .= "<label>";
-                    $q .= "<input name=" . $q_label . " value=" . $i . " $disabled type=\"radio\"";
+                    $q .= "<input name='" . $q_label . " value=" . $i . "' $disabled type=\"radio\"";
                     if ((isset($response)) && ($response == $code)) {
                         $q .= " checked='checked'";
                     }
@@ -1155,11 +1154,13 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
                     }
                     $q .= "/> $proxy_num";
                     $q .= "</label>";
+
+                    if ($question_num == "q13" && $i == 2) {
+                        $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$q_label\" name=\"$q_label\" rows=\"3\">$q13_other</textarea>";
+                    }
                     $i++;
                 }
-
                 if ($question_num == "q13") {
-                    $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$q_label\" name=\"$q_label\" rows=\"3\">$q13_other</textarea>";
                 }
             }
 
