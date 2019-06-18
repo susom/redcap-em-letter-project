@@ -31,7 +31,10 @@
     display:inline-block;
 
 }
-
+.input-group.login_email {
+    display:flex;
+    background:#efefef;
+}
 .input-group-text {
     font-weight: bold;
     text-align:center;
@@ -356,4 +359,13 @@ label input{
 .proxy_answers .ttable-cell{
     display:block;
     padding: 0 10px 10px;
+}
+
+
+.popover{
+    max-width:316px;
+}
+.popover .media-object{
+    width:100%;
+    max-width:276px;
 }

@@ -77,11 +77,11 @@ namespace Stanford\LetterProject;
             trigger: 'hover',
             container: 'body',
             html: true,
-            content: '<div class="media d-block"><a href="#" class="top"><img src="https://redcap.stanford.edu/plugins/open/resources/popover_cpr.jpg" class="media-object" alt="Sample Image"></a><br><div class="media-body"><p> If a person’s heart stops or if that person stops breathing and the person has not indicated he or she does not want CPR, health care professionals usually try to revive him or her using CPR. In most cases when people have a terminal illness this is not successful. (You do not need to have an advance directive to request a do-not-resuscitate order.)</p></div></div>'
+            content: '<div class="media d-block"><a href="#" class="top"><img src="https://redcap.stanford.edu/plugins/open/resources/popover_cpr.jpg" class="media-object" alt="Sample Image"></a><div class="media-body"><p> If a person’s heart stops or if that person stops breathing and the person has not indicated he or she does not want CPR, health care professionals usually try to revive him or her using CPR. In most cases when people have a terminal illness this is not successful. (You do not need to have an advance directive to request a do-not-resuscitate order.)</p></div></div>'
         });
         $('[data-toggle="popover_breathing"]').popover({
             placement: 'right',
-            trigger: 'show',
+            trigger: 'hover',
             container: 'body',
             html: true,
             content: '<div class="media d-block"><a href="#" class="top"><img src="https://redcap.stanford.edu/plugins/open/resources/popover_breathing.jpg" ></a><div class="media-body text-justify"><p> If your lungs stop working properly, doctors can connect you to a machine called a ventilator. A ventilator is a machine that pumps air into a person’s lungs through a tube in the person’s mouth or nose that goes down the throat. The machine breathes for a person when he or she cannot.</p></div></div>'
@@ -92,7 +92,7 @@ namespace Stanford\LetterProject;
             trigger: 'hover',
             container: 'body',
             html: true,
-            content: '<div class="media"><a href="#" class="top"><img src="https://redcap.stanford.edu/plugins/open/resources/popover_feeding_tube.png" class="media-object" style="height:150px" alt="Sample Image"></a><div class="media-body d-block"><p> There are various methods to feed people who can no longer eat, including inserting a tube into the stomach through a person’s nose or through the stomach wall to give food and fluids.</p></div></div>'
+            content: '<div class="media d-block"><a href="#" class="top"><img src="https://redcap.stanford.edu/plugins/open/resources/popover_feeding_tube.png" class="media-object" alt="Sample Image"></a><div class="media-body d-block"><p> There are various methods to feed people who can no longer eat, including inserting a tube into the stomach through a person’s nose or through the stomach wall to give food and fluids.</p></div></div>'
         });
 
         $('[data-toggle="popover_dialysis"]').popover({
@@ -100,7 +100,7 @@ namespace Stanford\LetterProject;
             trigger: 'hover',
             container: 'body',
             html: true,
-            content: '<div class="media"><a href="#" class="top"><img src="https://redcap.stanford.edu/plugins/open/resources/popover_dialysis.png" class="media-object" style="height:200px" alt="Dialysis"></a><br><div class="media-body"><p>If your kidneys stop working properly, your blood can be cleaned using a dialysis machine. The dialysis machine does the work of your kidneys. Most people have to go to a dialysis center and be dialyzed three times a week. Some are dialyzed at home.</p></div></div>'
+            content: '<div class="media d-block"><a href="#" class="top"><img src="https://redcap.stanford.edu/plugins/open/resources/popover_dialysis.png" class="media-object" alt="Dialysis"></a><div class="media-body d-block"><p>If your kidneys stop working properly, your blood can be cleaned using a dialysis machine. The dialysis machine does the work of your kidneys. Most people have to go to a dialysis center and be dialyzed three times a week. Some are dialyzed at home.</p></div></div>'
         });
 
         $('[data-toggle="popover_hospice"]').popover({
@@ -108,7 +108,7 @@ namespace Stanford\LetterProject;
             trigger: 'hover',
             container: 'body',
             html: true,
-            content: '<div class="media"><a href="#" class="top"><img src="https://redcap.stanford.edu/plugins/open/resources/popover_hospice.jpg" class="media-object" style="height:200px" alt="Hospice"></a><br><div class="media-body"><p>is a type of care provided to a patient at the end of life. Hospice care focuses on enhancing the dying person’s quality of life and provides support to their family or friends. Hospice care is usually provided in the home, but also can be provided in a hospital or nursing home.</p></div></div>'
+            content: '<div class="media d-block"><a href="#" class="top"><img src="https://redcap.stanford.edu/plugins/open/resources/popover_hospice.jpg" class="media-object" alt="Hospice"></a><div class="media-body d-block"><p>is a type of care provided to a patient at the end of life. Hospice care focuses on enhancing the dying person’s quality of life and provides support to their family or friends. Hospice care is usually provided in the home, but also can be provided in a hospital or nursing home.</p></div></div>'
         });
 
 

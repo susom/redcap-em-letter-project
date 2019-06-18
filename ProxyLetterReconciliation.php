@@ -849,7 +849,7 @@ function formatPrintAnswers($question_num, $field_type, $response) {
                     if ((isset($response)) && ($response == $code)) {
                         $q .= " checked='checked'";
                     }
-                    $q .= "/> $proxy_num $code";
+                    $q .= "/> $proxy_num";
                     $q .= "</label>";
                     $i++;
                 }

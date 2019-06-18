@@ -54,7 +54,7 @@ namespace Stanford\LetterProject;
         <div class="row justify-content-center align-items-center h-100">
         <form role='form' method='POST' name='frm'>
             <div class="text-center">
-                <div class="input-group input-group-lg text-center code w-100">
+                <div class="input-group input-group-lg text-center code w-100 login_email">
                     <input autofocus type="text" id='code' name='code' class="form-control text-center" placeholder="email address" aria-describedby="basic-addon1">
                     <div class="input-group-append">
                         <button type="submit" name="login" value="1" class="btn btn-primary">Login</button>
