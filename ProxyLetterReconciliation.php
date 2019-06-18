@@ -372,13 +372,17 @@ function renderTabDivs($record) {
     $divs[] .="</div>";
 
     $metadata = $Proj->metadata;
+    $n = 1;
     foreach ($questions as $num => $question_num ) {
-        $meta_label = $metadata[$question_num]['element_label'];
-        $field_type = $metadata[$question_num]['element_type'];
+        $meta_label         = $metadata[$question_num]['element_label'];
+        $field_type         = $metadata[$question_num]['element_type'];
+        $question_count     = count($questions);
         $str  = "<div id='" . $question_num . "' class='tab-pane fade in'>";
             $str .= "<div class=\"jumbotron questions\">";
                 $str .= "<h2>Care Choice Question</h2>";
-                $str .= "<div class='metalabel'>$meta_label";
+                $str .= "<div class='metalabel'>";
+                $str .= "<div class='page_count'>Question: $n of $question_count</div>";
+                $str .= $meta_label;
                 $str .= "<blockquote><h5>Your Response:</h5>".formatPrintAnswers($question_num, $field_type, $responses[$question_num]['original_arm_1'])."</blockquote>";
                 $str .= "</div>";
             $str .= "</div>";
@@ -392,6 +396,7 @@ function renderTabDivs($record) {
                 );
         $str .= "</div>";
         $divs[] = $str;
+        $n++;
     }
     $divs[] = "<div id='" . "print_page" . "' class='tab-pane fade in'>". getPDFPage($proxies) ."</div>";
 
@@ -776,7 +781,7 @@ function formatPrintAnswers($question_num, $field_type, $response) {
             $i=1;
             foreach ($coded as $code => $proxy_num) {
                 $q .= "<label class='disabled'>";
-                $q .= "<input name='" . $q_label . "_" . $i . "' $disabled  type=\"checkbox\"";
+                $q .= "<input name='" . $q_label . "_" . $i . "' disabled  type=\"checkbox\"";
                 if ($response[$code]) {
                     $q .= " checked = checked";
                 }
@@ -1296,6 +1301,7 @@ function renderAnswers($question_num, $orig, $p1, $p2, $p3, $final, $proxy) {
 
     $q .= "<div class=\"col-lg-12 final_answer\">";
     $q .= "<h2>Your Response : Final Edit</h2>";
+        $q .= "<p class='instruction_text'>Please review your Proxies' responses and make any final edits to your original response here.</p>";
         $q .= "<div class=\"form-group\">";
             $q .= formatInputFields($question_num, 'final', $field_type, $final, true);
         $q .="</div>";

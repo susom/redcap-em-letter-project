@@ -375,3 +375,13 @@ label input{
     width:100%;
     max-width:276px;
 }
+
+.instruction_text{
+    margin: 0 30px;
+}
+.page_count{
+    text-align:right;
+    color:#8c1515;
+    font-weight:light;
+    margin:0 0 5px;
+}
