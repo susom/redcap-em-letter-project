@@ -317,16 +317,16 @@ function renderTabs() {
             "<a class='nav-link' id='tab-{$key}' data-toggle='tab' href='#{$key}' role='tab' aria-controls='{$key}' aria-selected=''".
             "'>" . strtoupper($key) . "</a></li>";
 
-//        $tabs[] = "<li><a data-toggle='tab' id='tab-{$key}' data-index='{" . $index++ .
-//            "' data-key='{$key}' href='#{$key}' title='" . $key .
-//            "'>" . strtoupper($key) . "</a></li>";
+        //        $tabs[] = "<li><a data-toggle='tab' id='tab-{$key}' data-index='{" . $index++ .
+        //            "' data-key='{$key}' href='#{$key}' title='" . $key .
+        //            "'>" . strtoupper($key) . "</a></li>";
     }
     //LetterProject::log(implode($tabs), "TABS");
     print implode("", $tabs);
 }
 
 function renderTabDivs($record) {
-    global $module;
+    global $module,$Proj;
 
     $questions = $module->getProjectSetting('questions'); //LetterProject::$config['questions'];
     $responses = organizeResponses($record);
@@ -359,34 +359,37 @@ function renderTabDivs($record) {
     /**
     $divs[] = "
                 <div id='home' class='tab-pane active in'>
-                    <!--p>Home</p-->
                     <div class=\"jumbotron text-center\">
-                    <div id='welcome'>
-                        <h1>WHAT MATTERS MOST</h1>
-                        <hr>
-                        <p<>We want to provide you with the best care possible. To do this, we need to understand what matters most to you.</p>
-                        <p<>We will make every effort to respect and honor your wishes and choices.</p>
-                    </div>
+                        <div id='welcome'>
+                            <h1>WHAT MATTERS MOST</h1>
+                            <p<>We want to provide you with the best care possible. To do this, we need to understand what matters most to you.</p>
+                            <p<>We will make every effort to respect and honor your wishes and choices.</p>
+                        </div>
                     </div>";
      */
     $divs[] = "<div id='" . "home" . "' class='tab-pane active in'>". getDecisionMakerPage($maker_data);  // ."</div>";
     $divs[] = renderNavButtons(false, true, false);
     $divs[] .="</div>";
 
-
+    $metadata = $Proj->metadata;
     foreach ($questions as $num => $question_num ) {
         $meta_label = $metadata[$question_num]['element_label'];
-
-        $str = "<div id='" . $question_num . "' class='tab-pane fade in'>
-                    <br>";
-        $str .= "<div class=\"jumbotron\"><p>".$meta_label."</p></div>";
-        $str .= renderAnswers($question_num, $responses[$question_num]['original_arm_1'],
-            $responses[$question_num]['proxy_1_arm_1'],
-            $responses[$question_num]['proxy_2_arm_1'],
-            $responses[$question_num]['proxy_3_arm_1'],
-            $responses[$question_num]['final_arm_1'],
-            $proxies
-        );
+        $field_type = $metadata[$question_num]['element_type'];
+        $str  = "<div id='" . $question_num . "' class='tab-pane fade in'>";
+            $str .= "<div class=\"jumbotron questions\">";
+                $str .= "<h2>Care Choice Question</h2>";
+                $str .= "<div class='metalabel'>$meta_label";
+                $str .= "<blockquote><h5>Your Response:</h5>".formatPrintAnswers($question_num, $field_type, $responses[$question_num]['original_arm_1'])."</blockquote>";
+                $str .= "</div>";
+            $str .= "</div>";
+            $str .= 
+                renderAnswers(  $question_num, $responses[$question_num]['original_arm_1'],
+                                $responses[$question_num]['proxy_1_arm_1'],
+                                $responses[$question_num]['proxy_2_arm_1'],
+                                $responses[$question_num]['proxy_3_arm_1'],
+                                $responses[$question_num]['final_arm_1'],
+                                $proxies
+                );
         $str .= "</div>";
         $divs[] = $str;
     }
@@ -623,9 +626,9 @@ function getPDFPage($proxy) {
     global $module;
     $module->emDebug($proxy);
 
-//    $str = "<div class=\"jumbotron text-center\">
-//                    <div id='pdf_page_one'>this is the print page. Perhaps some PDF here?</div>
-//                    </div>";
+    //    $str = "<div class=\"jumbotron text-center\">
+    //                    <div id='pdf_page_one'>this is the print page. Perhaps some PDF here?</div>
+    //                    </div>";
 
     $str =
         '
@@ -702,6 +705,210 @@ function getFieldChoiceList($question_num) {
     return $coded;
 }
 
+function formatPrintAnswers($question_num, $field_type, $response) {
+    global $module;
+
+    $q = '';
+    switch ($field_type) {
+        case "descriptive":
+            //handle the descriptive formats
+            //Q2 is an odd ball case where there is 4 text boxes after the descriptive
+            //let's just check just in case more get added
+            if ($question_num == "q2") {
+                //$module->emLog($response, "RESPONSE FOR $proxy_num");
+                $q .= "<ul class='list_answers'>";
+                foreach ($response as $resp_item) {
+                    if(empty($resp_item)){
+                        continue;
+                    }
+                    $q .= "<li><span>$resp_item</span></li>";
+                }
+                $q .= "</ul>";
+            }
+
+            //Q5 is an odd ball case where there is 5 text boxes after the descriptive
+            //let's just check just in case more get added
+            if ($question_num == "q5") {
+                //$module->emLog($response, "RESPONSE FOR $proxy_num");
+                $q .= '<div class="ttable">';
+                $q .= '<div class="ttable-row thead">';
+                    $q .= '<div class="ttable-cell"></div>';
+                    $q .= '<div class="ttable-cell">Name:</div>';
+                    $q .= '<div class="ttable-cell">Relationship:</div>';
+                    $q .= '<div class="ttable-cell">Address:</div>';
+                    $q .= '<div class="ttable-cell">City, State, Zip:</div>';
+                    $q .= '<div class="ttable-cell">Phone:</div>';
+                $q .= '</div>';
+                $q .= '<div class="ttable-row">';
+                $q .= '<div class="ttable-cell proxy_num">Proxy 1</div>';
+                $q .= '<div class="ttable-cell"><b>Name:</b> '.$response[1]['name_decision'].'</div>';
+                $q .= '<div class="ttable-cell"><b>Relationship:</b> '.$response[1]['relationship_decision'].'</div>';
+                $q .= '<div class="ttable-cell"><b>Address:</b> '.$response[1]['address_decision'].'</div>';
+                $q .= '<div class="ttable-cell"><b>City, State, Zip:</b> '.$response[1]['city_decision'].'</div>';
+                $q .= '<div class="ttable-cell"><b>Phone:</b> '.$response[1]['phone_decision'].'</div>';
+                $q .= '</div>';
+                $q .= '<div class="ttable-row">';
+                $q .= '<div class="ttable-cell proxy_num">Proxy 2</div>';
+                $q .= '<div class="ttable-cell"><b>Name:</b> '.$response[2]['name_decision'].'</div>';
+                $q .= '<div class="ttable-cell"><b>Relationship:</b> '.$response[2]['relationship_decision'].'</div>';
+                $q .= '<div class="ttable-cell"><b>Address:</b> '.$response[2]['address_decision'].'</div>';
+                $q .= '<div class="ttable-cell"><b>City, State, Zip:</b> '.$response[2]['city_decision'].'</div>';
+                $q .= '<div class="ttable-cell"><b>Phone:</b> '.$response[2]['phone_decision'].'</div>';
+                $q .= '</div>';
+                $q .= '<div class="ttable-row">';
+                $q .= '<div class="ttable-cell proxy_num">Proxy 3</div>';
+                $q .= '<div class="ttable-cell"><b>Name:</b> '.$response[3]['name_decision'].'</div>';
+                $q .= '<div class="ttable-cell"><b>Relationship:</b> '.$response[3]['relationship_decision'].'</div>';
+                $q .= '<div class="ttable-cell"><b>Address:</b> '.$response[3]['address_decision'].'</div>';
+                $q .= '<div class="ttable-cell"><b>City, State, Zip:</b> '.$response[3]['city_decision'].'</div>';
+                $q .= '<div class="ttable-cell"><b>Phone:</b> '.$response[3]['phone_decision'].'</div>';
+                $q .= '</div>';
+                $q .= '</div>';
+            }
+
+            break;
+        case "checkbox":
+            //handle the checkbox formats
+
+            //get the choice enumeration from the metadata
+            $coded = getFieldChoiceList($question_num);
+
+            $i=1;
+            foreach ($coded as $code => $proxy_num) {
+                $q .= "<label>";
+                $q .= "<input name=" . $q_label . "_" . $i . " $disabled  type=\"checkbox\"";
+                if ($response[$code]) {
+                    $q .= " checked = checked";
+                }
+                $q .="/>$proxy_num</label>";
+                $i++;
+            }
+            if ($question_num == "q9") {
+                $response_other = $response['q9_99_other'];
+                $q .= "<textarea $readonly class=\"text_answer\" id=\"$q_label\" name=\"$q_label\" rows=\"3\">$response_other</textarea>";
+            }
+
+            break;
+        case "radio":
+            //handle the radio formats
+            //get the choice enumeration from the metadata
+            $coded  = getFieldChoiceList($question_num);
+            $re     = '/^(?<prefix>q\d*)_(?<part1>\w*)_*(?<part2>\w*)/m';
+            preg_match_all($re, $question_num, $matches, PREG_SET_ORDER, 0);
+            $prefix = $matches[0]['prefix'];
+
+            if ($prefix == "q7") {
+                $question_num = $prefix;
+                $part1 = $response['part1'];
+                $part2 = $response['part2'];
+
+                $q .= '<form>';
+                $i = 1;
+                foreach ($coded as $code => $proxy_num) {
+                    $q .= "<label>";
+                    $q .= "<input name=" . $q_label . " value=" . $i . " $disabled type=\"radio\"";
+                    if ((isset($part1)) && ($part1 == $code)) {
+                        $q .= " checked='checked'";
+                    }
+                    $q .= "/> $proxy_num";
+                    $q .= "</label>";
+                    $i++;
+                }
+                $q .= '</form>';
+                $q .= "<p class='text_answer'>$part2</p>";
+            } elseif ($prefix == "q8") {
+                $module->emLog("2PREFIX IS SDF".$prefix);
+                $question_num = $prefix;
+                $part1 =  $response['part1'];
+                $part2 =  $response['part2'];
+
+                $q .= '<form>';
+                $i=1;
+                foreach ($coded as $code => $proxy_num) {
+                    $q .= "<label>";
+                    $q .= "<input name=" . $q_label . " value=" . $i . " $disabled type=\"radio\"";
+                    if ((isset($part1)) && ($part1 == $code) ) {
+                        $q .= " checked='checked'";
+                    }
+                    $q .= "/> $proxy_num";
+                    $q .= "</label>";
+                    $i++;
+                }
+                $q .= '</form>';
+                $q .= "<p class='text_answer'>$part2</p>";
+            } else {
+                if ($question_num == "q13") {
+                    $q13_other = $response['q13_donate_following'];
+                    $response = $response['q13'];
+                }
+                $q .= '<form>';
+                $i = 1;
+                foreach ($coded as $code => $proxy_num) {
+                    $q .= "<label>";
+                    $q .= "<input name=" . $q_label . " value=" . $i . " $disabled type=\"radio\"";
+                    if ((isset($response)) && ($response == $code)) {
+                        $q .= " checked='checked'";
+                    }
+                    $q .= "/> $proxy_num $code";
+                    $q .= "</label>";
+                    $i++;
+                }
+                $q .= '</form>';
+                if ($question_num == "q13") {
+                    $q .= "<p class='text_answer'>$q13_other</p>";
+                }
+            }
+            break;
+        case "yesno":
+            //handle the yesno formats
+            //get the choice enumeration from the metadata
+            $coded  = getFieldChoiceList($question_num);
+            $re     = '/^(?<prefix>q\d*)_(?<part1>\w*)_*(?<part2>\w*)/m';
+            preg_match_all($re, $question_num, $matches, PREG_SET_ORDER, 0);
+
+            $prefix = $matches[0]['prefix'];
+            $q .= '<form>';
+            if ($prefix == "q8") {
+                $question_num = $prefix;
+                $part1 =  $response['part1'];
+                $part2 =  $response['part2'];
+                $i=1;
+                foreach ($coded as $code => $proxy_num) {
+                    $q .= "<label>";
+                    $q .= "<input name=" . $q_label . " value=" . $i . " $disabled type=\"radio\"";
+                    if ((isset($part1)) && ($part1 == $code) ) {
+                        $q .= " checked='checked'";
+                    }
+                    $q .=" /> $proxy_num";
+                    $q .= "</label>";
+                    $i--;
+                }
+                $inst_label = $q_label."_inst";
+                $q .= "<p class='text_answer'>$part2</p>";
+            } else {
+                $i = 1;
+                foreach ($coded as $code => $proxy_num) {
+                    $q .= "<label>";
+                    $q .= "<input name=" . $q_label . " value=" . $i . " $disabled type=\"radio\"";
+                    if ((isset($response)) && ($response == $code)) {
+                        $q .= " checked='checked'";
+                    }
+                    $q .= "/> $proxy_num";
+                    $q .= "</label>";
+                    //yesno decrements since 1=yes, 0=no
+                    $i--;
+                }
+            }
+            $q .= '</form>';
+            break;
+        default:
+            //default  is textarea
+            $q .= "<p class='text_answer'>$response</p>";
+            break;
+    }
+    return $q;
+}
+
 function formatInputFields($question_num, $proxy_num, $field_type, $response, $editable=false) {
     global $module;
 
@@ -716,10 +923,6 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
     $final_label = $question_num . "_final";  //i.e. q7_final
 
     switch ($field_type) {
-        case "textarea":
-            //handle the textarea formats
-            $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$q_label\" name=\"$q_label\" rows=\"4\">$response</textarea><br>";
-            break;
         case "descriptive":
             //handle the descriptive formats
             //Q2 is an odd ball case where there is 4 text boxes after the descriptive
@@ -729,7 +932,7 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
 
                 //put each field in a separate text field
                 $i=1;
-                $q .= "<div class='container'>";
+                $q .= "<ul class='list_answers'>";
                 foreach ($response as $proxy_name) {
                     $name = $question_num . "_" . $i;
                     //$q .= "<div class='text-group {$grey}'>";
@@ -738,7 +941,7 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
                     //$q .= "</div>";
                     $i++;
                 }
-                $q .= "</div>";
+                $q .= "</ul>";
             }
 
             //Q5 is an odd ball case where there is 5 text boxes after the descriptive
@@ -842,34 +1045,24 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
             break;
         case "checkbox":
             //handle the checkbox formats
-
             //get the choice enumeration from the metadata
             $coded = getFieldChoiceList($question_num);
 
             $i=1;
             foreach ($coded as $code => $proxy_num) {
-                $q .= "<div class=\"form-control $grey\">";
-
-                //$q .= "<input name=".$q_label."_".$code." $disabled class=\"form-check-input\" ";
-                //$q .= "<input name=" . $q_label . " value=" . $i . " $disabled class=\"form-check-input\" ";
-                //in the end, chose to represent each checkbox option as a separate field. easier to overwrite
-                //blanks during the save
-                $q .= "<input name=" . $q_label . "_" . $i . " $disabled class=\"form-check-input\" ";
-
+                $q .= "<label>";
+                    $q .= "<input name=" . $q_label . "_" . $i . " $disabled type=\"checkbox\"";
+                    if ($response[$code]) {
+                        $q .= " checked = checked";
+                    }
+                    $q .="/> $proxy_num";
+                $q .= "</label>";
                 $i++;
-
-                $q .= " type=\"checkbox\"";
-                if ($response[$code]) {
-                    $q .= " checked = checked";
-                }
-                $q .="/>$proxy_num</div>";
             }
             if ($question_num == "q9") {
                 $response_other = $response['q9_99_other'];
-
                 $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$q_label\" name=\"$q_label\" rows=\"3\">$response_other</textarea>";
             }
-
             break;
         case "radio":
             //handle the radio formats
@@ -889,67 +1082,45 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
                 $part1 = $response['part1'];
                 $part2 = $response['part2'];
 
-                $q .= '<div class="greyed">';
+                $q .= '<div>';
                 $i = 1;
 
                 foreach ($coded as $code => $proxy_num) {
-//                $r .= "<div class=\"btn-group\" data-toggle=\"buttons\">";
-//                $r .= "<label class=\"btn btn-primary\">";
-//                $r .="<input type=\"radio\" name=\"options\" id=\"option1\"> Option 1";
-//                $r .= "</label>";
-//                $r .= "<input name=" . $q_label . " value=" . $i . " $disabled class=\"form-check-input\" ";
-//
-//                $r .="/>$proxy_num</div>";
-
-                    $q .= "<div class=\"form-control $grey\">";
-                    $q .= "<input name=" . $q_label . " value=" . $i . " $disabled class=\"form-check-input\" ";
-                    $i++;
-
+                    $q .= "<label>";
+                    $q .= "<input name=" . $q_label . " value=" . $i . " $disabled ";
                     $q .= " type=\"radio\"";
                     if ((isset($part1)) && ($part1 == $code)) {
                         //LetterProject::log($response ."_". $code, "IN YESNO/RADIO");
                         $q .= " checked = checked";
                     }
-                    $q .= "/>$proxy_num</div>";
+                    $q .= "/> $proxy_num";
+                    $q .= "</label>";
+                    $i++;
                 }
                 $q .= '</div>';
-                $q .= '<div class="">';
                 $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$q_label\" name=\"$q_label\" rows=\"3\">$part2</textarea>";
-                $q .= '</div>';
             } elseif ($prefix == "q8") {
                 $module->emLog("2PREFIX IS SDF".$prefix);
-                    $question_num = $prefix;
-                    $part1 =  $response['part1'];
-                    $part2 =  $response['part2'];
+                $question_num = $prefix;
+                $part1 =  $response['part1'];
+                $part2 =  $response['part2'];
 
-                    $q .= '<div class="">';
-                    $i=1;
-
-                    foreach ($coded as $code => $proxy_num) {
-//                $r .= "<div class=\"btn-group\" data-toggle=\"buttons\">";
-//                $r .= "<label class=\"btn btn-primary\">";
-//                $r .="<input type=\"radio\" name=\"options\" id=\"option1\"> Option 1";
-//                $r .= "</label>";
-//                $r .= "<input name=" . $q_label . " value=" . $i . " $disabled class=\"form-check-input\" ";
-//
-//                $r .="/>$proxy_num</div>";
-
-                        $q .= "<div class=\"form-control $grey\">";
-                        $q .= "<input name=" . $q_label . " value=" . $i . " $disabled class=\"form-check-input\" ";
-                        $i++;
-
-                        $q .= " type=\"radio\"";
-                        if ((isset($part1)) && ($part1 == $code) ) {
-                            //LetterProject::log($response ."_". $code, "IN YESNO/RADIO");
-                            $q .= " checked = checked";
-                        }
-                        $q .="/>$proxy_num</div>";
+                $q .= '<div>';
+                $i=1;
+                foreach ($coded as $code => $proxy_num) {
+                    $q .= "<label>";
+                    $q .= "<input name=" . $q_label . " value=" . $i . " $disabled ";
+                    $q .= " type=\"radio\"";
+                    if ((isset($part1)) && ($part1 == $code)) {
+                        //LetterProject::log($response ."_". $code, "IN YESNO/RADIO");
+                        $q .= " checked = checked";
                     }
-                    $q .= '</div>';
-                    $q .= '<div class="$grey">';
-                    $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$q_label\" name=\"$q_label\" rows=\"3\">$part2</textarea>";
-                    $q .= '</div>';
-
+                    $q .= "/> $proxy_num";
+                    $q .= "</label>";
+                    $i++;
+                }
+                $q .= '</div>';
+                $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$q_label\" name=\"$q_label\" rows=\"3\">$part2</textarea>";
             } else {
 
                 /**
@@ -975,48 +1146,26 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
                 $i = 1;
 
                 foreach ($coded as $code => $proxy_num) {
-//                $r .= "<div class=\"btn-group\" data-toggle=\"buttons\">";
-//                $r .= "<label class=\"btn btn-primary\">";
-//                $r .="<input type=\"radio\" name=\"options\" id=\"option1\"> Option 1";
-//                $r .= "</label>";
-//                $r .= "<input name=" . $q_label . " value=" . $i . " $disabled class=\"form-check-input\" ";
-//
-//                $r .="/>$proxy_num</div>";
-
-                    $q .= "<div class=\"form-control $grey\">";
-                    $q .= "<input name=" . $q_label . " value=" . $i . " $disabled class=\"form-check-input\" ";
-                    $i++;
-
+                    $q .= "<label>";
+                    $q .= "<input name=" . $q_label . " value=" . $i . " $disabled ";
                     $q .= " type=\"radio\"";
                     if ((isset($response)) && ($response == $code)) {
                         //LetterProject::log($response ."_". $code, "IN YESNO/RADIO");
                         $q .= " checked = checked";
                     }
-                    $q .= "/>$proxy_num</div>";
+                    $q .= "/> $proxy_num";
+                    $q .= "</label>";
+                    $i++;
                 }
 
                 if ($question_num == "q13") {
                     $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$q_label\" name=\"$q_label\" rows=\"3\">$q13_other</textarea>";
                 }
-
             }
 
             break;
         case "yesno":
             //handle the yesno formats
-
-            /**
-             * <div class="custom-control custom-radio">
-            <input type="radio" id="customRadio1" name="customRadio" class="custom-control-input">
-            <label class="custom-control-label" for="customRadio1">Boots</label>
-            </div>
-            <div class="custom-control custom-radio">
-            <input type="radio" id="customRadio2" name="customRadio" class="custom-control-input">
-            <label class="custom-control-label" for="customRadio2">Shoes</label>
-            </div>
-             *
-             */
-
 
             //get the choice enumeration from the metadata
             $coded = getFieldChoiceList($question_num);
@@ -1030,67 +1179,45 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
                 $question_num = $prefix;
                 $part1 =  $response['part1'];
                     $part2 =  $response['part2'];
-
-                    $q .= '<div class="">';
+                    $q .= '<div>';
                     $i=1;
-
                     foreach ($coded as $code => $proxy_num) {
-//                $r .= "<div class=\"btn-group\" data-toggle=\"buttons\">";
-//                $r .= "<label class=\"btn btn-primary\">";
-//                $r .="<input type=\"radio\" name=\"options\" id=\"option1\"> Option 1";
-//                $r .= "</label>";
-//                $r .= "<input name=" . $q_label . " value=" . $i . " $disabled class=\"form-check-input\" ";
-//
-//                $r .="/>$proxy_num</div>";
-
-                        $q .= "<div class=\"form-control $grey\">";
-                        $q .= "<input name=" . $q_label . " value=" . $i . " $disabled class=\"form-check-input\" ";
-                        $i--;
-
+                        $q .= "<label>";
+                        $q .= "<input name=" . $q_label . " value=" . $i . " $disabled ";
                         $q .= " type=\"radio\"";
                         if ((isset($part1)) && ($part1 == $code) ) {
-                            //LetterProject::log($response ."_". $code, "IN YESNO/RADIO");
                             $q .= " checked = checked";
                         }
-                        $q .="/>$proxy_num</div>";
+                        $q .= "/> $proxy_num";
+                        $q .= "</label>";
+                        $i--;
                     }
                     $inst_label = $q_label."_inst";
                     $q .= '</div>';
-                    $q .= '<div class="">';
                     $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$inst_label\" name=\"$inst_label\" rows=\"3\">$part2</textarea>";
-                    $q .= '</div>';
             } else {
-
                 $i = 1;
                 foreach ($coded as $code => $proxy_num) {
-                    $q .= "<div class=\"form-control $grey\">";
-                    $q .= "<input name=" . $q_label . " value=" . $i . " $disabled class=\"form-check-input\" ";
-
-                    //yesno decrements since 1=yes, 0=no
-                    $i--;
-
-                    $q .= " type=\"radio\"";
+                    $q .= "<label>";
+                    $q .= "<input name=" . $q_label . " value=" . $i . " $disabled type=\"radio\"";
                     if ((isset($response)) && ($response == $code)) {
-                        //LetterProject::log($response ."_". $code, "IN YESNO/RADIO");
                         $q .= " checked = checked";
                     }
-                    $q .= "/>$proxy_num</div>";
+                    $q .= "/> $proxy_num</label>";
+                    $i--;
                 }
             }
             break;
         default:
-            //what is default?  treat like text area
-            $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$q_label\" name=\"$q_label\" rows=\"3\">$response</textarea>";
+            //textarea
+            $q .= "<textarea $readonly class=\"form-control $grey\" id=\"$q_label\" name=\"$q_label\" rows=\"4\">$response</textarea>";
             break;
-            break;
-
     }
     return $q;
 }
 
-
 function renderNavButtons($previous,$next, $submit, $print_page = null) {
-    $str = '<div class="mb-3 group-end">';
+    $str = '<div class="mb-3 group-end btn-footer">';
     if ($previous) {
         $str .= '<div class="btn btn-primary btnPrevious">Previous</div>';
     }
@@ -1127,61 +1254,59 @@ function renderAnswers($question_num, $orig, $p1, $p2, $p3, $final, $proxy) {
     $last_question = end(array_values($questions));
 
     $fields = array(
-        'What you said'=>$orig,
-        'What '.$proxy[$module->getProjectSetting("proxy-1-field")].' said'=>$p1,
-        'What '.$proxy[$module->getProjectSetting("proxy-2-field")].' said'=>$p2,
-        'What '.$proxy[$module->getProjectSetting("proxy-3-field")].' said'=>$p3);
+        $proxy[$module->getProjectSetting("proxy-1-field")].'\'s <br>response'=>$p1,
+        $proxy[$module->getProjectSetting("proxy-2-field")].'\'s <br>response'=>$p2,
+        $proxy[$module->getProjectSetting("proxy-3-field")].'\'s <br>response'=>$p3);
     global $Proj;
     $metadata = $Proj->metadata;
     $field_type = $metadata[$question_num]['element_type'];
     //LetterProject::log($field_type, "===============FIELD_TYPE for $question_num");
 
+    // $q = "<div class=\"col-lg-12\">";
+    // $q .= "<blockquote><b>Your Response</b>: $orig</blockquote>";
+    // $q .= "</div>";
 
-    $q = "<div class=\"col-lg-12\">";
+    $q .= "<div class=\"col-lg-12 proxy_answers\">";
 
+    $q .= "<h2>Your Proxy Responses</h2>";
     foreach ($fields as $label => $response) {
         //$module->emLog("Question num: $question_num / LABEL : $label / RESPONSE : ", $response);
 
-        if (! isset($response)) {
-            continue;
-        }
+        // if (!isset($response)) {
+        //     continue;
+        // }
 
 
         //helper fields for labeling
         $q_label = $question_num . "_" . $label;  //i.e. q7_proxy_1
         $final_label = $question_num . "_final";  //i.e. q7_final
-
-        $q .= "<div class=\"input-group\">";
-        $q .= '<div class="input-group-prepend">';
-        $q .= '<div class="input-group-text">' . $label . '</div>';
-
-        $q .= "<div class=\"form-group greyed\">";
-        $q .= formatInputFields($question_num, $label, $field_type, $response, false);
-        $q .= "</div>";
+        $q .= "<div class=\"col-lg-4 proxy_cards\">";
+        $q .= "<div class='card'>";
+            $q .= "<div class=\"card-body\">";
+                $q .= '<h4 class="card-title">' . $label . '</h4>';
+                $q .= "<div class=\"card-text\">";
+                $q .= formatPrintAnswers($question_num, $field_type, $response);
+                $q .= "</div>";
+             $q .= "</div>";
         $q .= "</div>";
         $q .= "</div>";
     }
+    $q .="</div>";
 
-    $q .= "<br><h4>Final Version</h4>";
+    $q .= "<div class=\"col-lg-12 final_answer\">";
+    $q .= "<h2>Your Response : Final Edit</h2>";
+        $q .= "<div class=\"form-group\">";
+            $q .= formatInputFields($question_num, 'final', $field_type, $final, true);
+        $q .="</div>";
 
-    $q .= "<div class=\"form-group\">";
-
-    $q .= formatInputFields($question_num, 'final', $field_type, $final, true);
-
-    $q.="</div>";
-
-
-    if ($question_num == $last_question) {
-        $q .= renderNavButtons(true, false, true, true);
-    } else {
-        $q .= renderNavButtons(true, true, false);
-    }
-
+        if ($question_num == $last_question) {
+            $q .= renderNavButtons(true, false, true, true);
+        } else {
+            $q .= renderNavButtons(true, true, false);
+        }
     $q .= "</div>";
 
     return $q;
-
-
 }
 
 function sendEmailPDF($record_id, $emails) {
@@ -1227,7 +1352,6 @@ function sendEmailPDF($record_id, $emails) {
     //$module->emDebug("Letter ATtach", $letter_attachment, "ETTER ATTACHB");
     //TODO: check if all status is clear
     return true;
-
 }
 
 function downloadPDF($record_id) {
@@ -1246,7 +1370,5 @@ function downloadPDF($record_id) {
     $foo = $pdf->Output('LetterProject.pdf', 'I');
     $module->emDebug($foo, "FOO");
     //return false;
-
 }
-
 ?>
