@@ -248,6 +248,14 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
         }
     }
 
+    /**
+     * An email was entered in the reconciliation tool Add the email as proxy_email
+     *
+     * @param $record
+     * @param $email
+     * @param $email_event
+     * @return bool
+     */
     public function saveNewEmail($record, $email, $email_event)
     {
         $this->emDebug($record, $email, $email_event);
@@ -267,15 +275,16 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
                 $email_field = $this->getProjectSetting('proxy-3-field');
                 break;
         }
-        $this->emDebug($event . " from " . $email_event);
+
 
 
         $data = array(
             REDCap::getRecordIdField() => $record,
             'redcap_event_name' => REDCap::getEventNames(true,false, $this->getProjectSetting('first-event')),
-            $email_field        => $email
+            $email_field        => $email,
+            "send_".$email_field."___1" => '1'  //checkbox for email proxy field
         );
-
+        //$this->emDebug($event . " from " . $email_event, $data);
         $q= REDCap::saveData('json', json_encode(array($data)));
 
         if (count($q['errors']) > 0) {
@@ -294,9 +303,15 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
     }
 
 
-
-
-
+    /**
+     * Allowing up to six slot, but can only take three proxy.
+     * So copy over the first three to the three proxy slots
+     *
+     * @param $project_id
+     * @param $record
+     * @param $instrument
+     * @return bool
+     */
     public function setProxyEmails($project_id, $record, $instrument) {
         //get the data for the selected emails
          $q = REDCap::getData(
@@ -340,6 +355,7 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
                 if ($set_status==1) {
                     if ($j < 4) {
                         $data["email_proxy_" . $j] = $result["email_decision_maker_" . $i];
+                        $data["send_email_proxy_" . $j."___1"] = $result["send_decision_maker_" . $i."___1"];
                     } else {
 
                         REDCap::logEvent(
@@ -353,7 +369,7 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
                     $j++;
                 }
         }
-        $this->emDebug($results, $data,"DEBUG", "Current Record");
+        //$this->emDebug($results, $data);
         $q= REDCap::saveData('json', json_encode(array($data)), 'overwrite');
 
         if (count($q['errors']) > 0) {

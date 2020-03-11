@@ -240,7 +240,7 @@ function organizeResponses($record) {
     //$first_event_array[\REDCap::getEventNames(true, false, $first_event)]=$first_event;
     //array_unshift($event_array, $first_event_array);
     $event_array[\REDCap::getEventNames(true, false, $last_event)] = $last_event;
-    //$module->emDebug($event_array, "EVENT ARRAY");
+    //$module->emDebug($event_array, "EVENT ARRAY"); exit;
 
     //iterate over the question list from the config
     foreach ($questions as $num => $question) {
@@ -258,6 +258,8 @@ function organizeResponses($record) {
             //original and final arm have question prepended with 'q': i.e. q1, q2
             //proxy forms has it prepended with 'p_q': i.e. p_q1, p_q2, etc
             //$prefix = (($event_name == 'original_arm_1') || ($event_name == 'final_arm_1')) ? 'q' : 'p_q';
+            //$module->emDebug($responses[$event_id]);
+
 
             if ($question == 'q2') {
                 //Question 2 is actually 4 questions that should be displayed together
@@ -330,7 +332,7 @@ function renderTabDivs($record) {
 
     $questions = $module->getProjectSetting('questions'); //LetterProject::$config['questions'];
     $responses = organizeResponses($record);
-    //$module->emDebug($responses);
+    //$module->emDebug($responses);  exit;
 
     $maker_data = getDecisionMakerData($record);
 
@@ -349,7 +351,7 @@ function renderTabDivs($record) {
     $results = json_decode($q,true);
     $proxies = current($results);
 
-    $module->emDebug($proxies,"PROXY");
+    //$module->emDebug($proxies,"PROXY");
 
     global $Proj;
     $metadata = $Proj->metadata;
@@ -407,7 +409,7 @@ function renderTabDivs($record) {
 
 function getDecisionMakerPage($maker_data) {
     global $module;
-    $module->emDebug($maker_data);
+    //$module->emDebug($maker_data);
 
 //    $str = "<div class=\"jumbotron text-center\">
 //                    <div id='pdf_page_one'>this is the print page. Perhaps some PDF here?</div>
@@ -1216,7 +1218,7 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
 function renderNavButtons($previous,$next, $submit, $print_page = null) {
     $str = '<div class="mb-3 group-end btn-footer">';
     if ($previous) {
-        $str .= '<div class="btn btn-primary btnPrevious">Previous</div>';
+        $str .= '<div class="btn btn-primary btnPrevious">Back</div>';
     }
     if ($next) {
         $str .= '<div class="btn btn-primary btnNext">Next</div>';
@@ -1250,10 +1252,27 @@ function renderAnswers($question_num, $orig, $p1, $p2, $p3, $final, $proxy) {
     $questions = $module->getProjectSetting('questions');
     $last_question = end(array_values($questions));
 
-    $fields = array(
+    $proxy_1_field = $proxy[$module->getProjectSetting("proxy-1-field")];
+    $proxy_2_field = $proxy[$module->getProjectSetting("proxy-2-field")];
+    $proxy_3_field = $proxy[$module->getProjectSetting("proxy-3-field")];
+
+    $fields_test = array(
         $proxy[$module->getProjectSetting("proxy-1-field")].'\'s <br>response'=>$p1,
         $proxy[$module->getProjectSetting("proxy-2-field")].'\'s <br>response'=>$p2,
         $proxy[$module->getProjectSetting("proxy-3-field")].'\'s <br>response'=>$p3);
+
+    if (!empty($proxy_1_field)) {
+        $fields[$proxy_1_field]=$p1;
+    }
+    if (!empty($proxy_2_field)) {
+        $fields[$proxy_2_field]=$p2;
+    }
+    if (!empty($proxy_3_field)) {
+        $fields[$proxy_3_field]=$p3;
+    }
+
+    //$module->emDebug($proxy, $fields,$proxy_1_field,$proxy_2_field,$proxy_3_field); //exit;
+
     global $Proj;
     $metadata = $Proj->metadata;
     $field_type = $metadata[$question_num]['element_type'];

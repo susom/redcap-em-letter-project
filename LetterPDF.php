@@ -232,7 +232,6 @@ EOF;
         return $html;
     }
 
-
     public static function makeTableOne($final_data) {
         global $module;
 
@@ -296,7 +295,6 @@ return $tbl1;
 
     }
 
-
     public static function makeTableNaturalDeath($final_data) {
         global $module;
 
@@ -353,9 +351,6 @@ EOD;
 return $tbl1;
 
     }
-
-
-
 
     public static function makeHTMLPage3($record_id, $final_data, $pdf) {
         global $module;
@@ -671,7 +666,7 @@ EOF;
         return $html;
     }
 
-  public static function makeHTMLPage7($record_id, $final_data, $declaration_sigfile_path, $specialwitness_sigfile_path) {
+    public static function makeHTMLPage7($record_id, $final_data, $declaration_sigfile_path, $specialwitness_sigfile_path) {
 
 
       $html = <<<EOF
@@ -747,7 +742,6 @@ EOF;
 
     public function decodeRefuse($coded) {
         return ($coded == 1 ? 'Refuse' : 'Accept');
-
     }
 
 }

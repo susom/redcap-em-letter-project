@@ -273,7 +273,7 @@ namespace Stanford\LetterProject;
         });
 
         $('#decision_maker').on('click', 'button.send-invite', function () {
-            buttonpressed = $(this).attr('name'); //todo: merge with teh other button press
+            buttonpressed = $(this).attr('name'); //todo: merge with the other button press
 
             var event = $(this).data('event');
             var email_str = 'proxy_email_'+event;
