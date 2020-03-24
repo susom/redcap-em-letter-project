@@ -275,19 +275,19 @@ function organizeResponses($record) {
                 for ($j=1; $j<4; $j++) {
                     foreach ($q_types as $k => $v) {
                         $prefix = $question . '_' . $v;
-                        $decision_maker_array[$j][$v] = $responses[$event_id][$prefix . '_' . $j];
+                        $decision_maker_array[$j][$v] = $responses[$event_id][$proxy_prefix.$prefix . '_' . $j];
                     }
                 }
                 $reorganized[$question][$event_name] = $decision_maker_array;
             } elseif (($prefix == 'q7') || ($prefix == 'q8')) {
-                $reorganized[$question][$event_name]  = array('part1' => $responses[$event_id][$prefix . '_'. $part1],
+                $reorganized[$question][$event_name]  = array('part1' => $responses[$event_id][$proxy_prefix.$prefix . '_'. $part1],
                      'part2' => $responses[$event_id][$prefix . '_' . $part1 . '_inst']);
             } elseif ($question == 'q9') {
-                $reorganized[$question][$event_name] = $responses[$event_id][$question];
-                $reorganized[$question][$event_name]['q9_99_other'] = $responses[$event_id]['q9_99_other'];
+                $reorganized[$question][$event_name] = $responses[$event_id][$proxy_prefix.$question];
+                $reorganized[$question][$event_name]['q9_99_other'] = $responses[$event_id][$proxy_prefix.'q9_99_other'];
             } elseif ($question == 'q13') {
-                $reorganized[$question][$event_name]['q13'] = $responses[$event_id][$question];
-                $reorganized[$question][$event_name]['q13_donate_following'] = $responses[$event_id]['q13_donate_following'];
+                $reorganized[$question][$event_name]['q13'] = $responses[$event_id][$proxy_prefix.$question];
+                $reorganized[$question][$event_name]['q13_donate_following'] = $responses[$event_id][$proxy_prefix.'q13_donate_following'];
 
             } else {
                 $reorganized[$question][$event_name] = $responses[$event_id][$proxy_prefix.$question];
@@ -322,7 +322,7 @@ function renderTabs() {
 }
 
 function renderTabDivs($record) {
-    global $module,$Proj;
+    global $module, $Proj;
 
     $questions = $module->getProjectSetting('questions'); //LetterProject::$config['questions'];
     $responses = organizeResponses($record);
@@ -340,15 +340,9 @@ function renderTabDivs($record) {
             $module->getProjectSetting('proxy-2-field'),
             $module->getProjectSetting('proxy-3-field')),
         $module->getProjectSetting('first-event')
-    //LetterProject::$config['first_event']
     );
     $results = json_decode($q,true);
     $proxies = current($results);
-
-    //$module->emDebug($proxies,"PROXY");
-
-    global $Proj;
-    $metadata = $Proj->metadata;
 
     $divs = array();
 
@@ -383,7 +377,8 @@ function renderTabDivs($record) {
                 $str .= "</div>";
             $str .= "</div>";
             $str .= 
-                renderAnswers(  $question_num, $responses[$question_num]['original_arm_1'],
+                renderAnswers(  $question_num,
+                                $responses[$question_num]['original_arm_1'],
                                 $responses[$question_num]['proxy_1_arm_1'],
                                 $responses[$question_num]['proxy_2_arm_1'],
                                 $responses[$question_num]['proxy_3_arm_1'],
@@ -514,18 +509,15 @@ function getDecisionMakerData($record_id) {
     $send_data[$proxy_2_field]['timestamp'] = $event_2_status[$timestamp_field];
     $send_data[$proxy_3_field]['timestamp'] = $event_3_status[$timestamp_field];
 
-    $module->emDebug($send_data);
+    //$module->emDebug($send_data);
 
     $return_data = array();
     foreach ($send_data as $event => $row) {
-        $module->emDebug("EVENT is ".$event);
+        //$module->emDebug("EVENT is ".$event);
         $return_data[] = getSurveyStatus($record_id, $row, $final_data[$date_last_reconciled], $event);
-
-
     }
 
-    $module->emDebug($return_data);
-
+    //$module->emDebug($return_data);
     return $return_data;
 
 }
@@ -545,7 +537,7 @@ function getDecisionMakerData($record_id) {
 function getSurveyStatus($record_id, $row, $last_timestamp_str, $event) {
     global $module;
 
-    $module->emDebug($last_timestamp_str, $row);
+    //$module->emDebug($last_timestamp_str, $row);
     $email = $row['email'];
     $status = $row['status'];
 
@@ -553,7 +545,7 @@ function getSurveyStatus($record_id, $row, $last_timestamp_str, $event) {
     $ts = new DateTime($ts_string);
     $last_ts = new DateTime($last_timestamp_str);
 
-    $module->emDebug($ts, $last_ts);
+    //$module->emDebug($ts, $last_ts);
 
     //default for email
 
@@ -932,10 +924,10 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
                 $i=1;
                 $q .= "<ul class='list_answers'>";
                 foreach ($response as $proxy_name) {
-                    $name = $question_num . "_" . $i;
+                    //$name = $question_num . "_" . $i;
                     //$q .= "<div class='text-group {$grey}'>";
                     //$q .= "<label for='$name'>".$i."</label>";
-                    $q .= "<input name=" .$name . " $readonly value=\"$proxy_name\"  type=\"text\"" . "/>";
+                    $q .= '<input id="'.$final_label.'_'.$i.'" name="' .$final_label .'_'.$i.'" value="'.$proxy_name.'" type="text" />';
                     //$q .= "</div>";
                     $i++;
                 }
@@ -969,27 +961,27 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
                     $q .= '</thead>';
                     $q .= '<tr>';
                     $q .= '<td>1</td>';
-                    $q .= '<td><input class="tcell" id="'.$q_label.'_name_decision_1'.'" name="'.$q_label.'_name_decision_1'.'"  value="'.$response[1]['name_decision'].'" type="text"></td>';
-                    $q .= '<td><input class="tcell" id="'.$q_label.'_relationship_decision_1'.'" name="'.$q_label.'_relationship_decision_1'.'"  value="'.$response[1]['relationship_decision'].'" type="text"></td>';
-                    $q .= '<td><input class="tcell" id="'.$q_label.'_address_decision_1'.'" name="'.$q_label.'_address_decision_1'.'"  value="'.$response[1]['address_decision'].'" type="text"></td>';
-                    $q .= '<td><input class="tcell" id="'.$q_label.'_city_decision_1'.'" name="'.$q_label.'_city_decision_1'.'"  value="'.$response[1]['city_decision'].'" type="text"></td>';
-                    $q .= '<td><input class="tcell" id="'.$q_label.'_phone_decision_1'.'" name="'.$q_label.'_phone_decision_1'.'"  value="'.$response[1]['phone_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" id="'.$final_label.'_name_decision_1'.'" name="'.$final_label.'_name_decision_1'.'"  value="'.$response[1]['name_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" id="'.$final_label.'_relationship_decision_1'.'" name="'.$final_label.'_relationship_decision_1'.'"  value="'.$response[1]['relationship_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" id="'.$final_label.'_address_decision_1'.'" name="'.$final_label.'_address_decision_1'.'"  value="'.$response[1]['address_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" id="'.$final_label.'_city_decision_1'.'" name="'.$final_label.'_city_decision_1'.'"  value="'.$response[1]['city_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" id="'.$final_label.'_phone_decision_1'.'" name="'.$final_label.'_phone_decision_1'.'"  value="'.$response[1]['phone_decision'].'" type="text"></td>';
                     $q .= '</tr>';
                     $q .= '<tr>';
                     $q .= '<td>2</td>';
-                    $q .= '<td><input class="tcell" id="'.$q_label.'_name_decision_2'.'" name="'.$q_label.'_name_decision_2'.'"  value="'.$response[2]['name_decision'].'" type="text"></td>';
-                    $q .= '<td><input class="tcell" id="'.$q_label.'_relationship_decision_2'.'" name="'.$q_label.'_relationship_decision_2'.'"  value="'.$response[2]['relationship_decision'].'" type="text"></td>';
-                    $q .= '<td><input class="tcell" id="'.$q_label.'_address_decision_2'.'" name="'.$q_label.'_address_decision_2'.'"  value="'.$response[2]['address_decision'].'" type="text"></td>';
-                    $q .= '<td><input class="tcell" id="'.$q_label.'_city_decision_2'.'" name="'.$q_label.'_city_decision_2'.'"  value="'.$response[2]['city_decision'].'" type="text"></td>';
-                    $q .= '<td><input class="tcell" id="'.$q_label.'_phone_decision_2'.'" name="'.$q_label.'_phone_decision_2'.'"  value="'.$response[2]['phone_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" id="'.$final_label.'_name_decision_2'.'" name="'.$final_label.'_name_decision_2'.'"  value="'.$response[2]['name_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" id="'.$final_label.'_relationship_decision_2'.'" name="'.$final_label.'_relationship_decision_2'.'"  value="'.$response[2]['relationship_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" id="'.$final_label.'_address_decision_2'.'" name="'.$final_label.'_address_decision_2'.'"  value="'.$response[2]['address_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" id="'.$final_label.'_city_decision_2'.'" name="'.$final_label.'_city_decision_2'.'"  value="'.$response[2]['city_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" id="'.$final_label.'_phone_decision_2'.'" name="'.$final_label.'_phone_decision_2'.'"  value="'.$response[2]['phone_decision'].'" type="text"></td>';
                     $q .= '</tr>';
                     $q .= '<tr>';
                     $q .= '<td>3</td>';
-                    $q .= '<td><input class="tcell" id="'.$q_label.'_name_decision_3'.'" name="'.$q_label.'_name_decision_3'.'"  value="'.$response[3]['name_decision'].'" type="text"></td>';
-                    $q .= '<td><input class="tcell" id="'.$q_label.'_relationship_decision_3'.'" name="'.$q_label.'_relationship_decision_3'.'"  value="'.$response[3]['relationship_decision'].'" type="text"></td>';
-                    $q .= '<td><input class="tcell" id="'.$q_label.'_address_decision_3'.'" name="'.$q_label.'_address_decision_3'.'"  value="'.$response[3]['address_decision'].'" type="text"></td>';
-                    $q .= '<td><input class="tcell" id="'.$q_label.'_city_decision_3'.'" name="'.$q_label.'_city_decision_3'.'"  value="'.$response[3]['city_decision'].'" type="text"></td>';
-                    $q .= '<td><input class="tcell" id="'.$q_label.'_phone_decision_3'.'" name="'.$q_label.'_phone_decision_3'.'"  value="'.$response[3]['phone_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" id="'.$final_label.'_name_decision_3'.'" name="'.$final_label.'_name_decision_3'.'"  value="'.$response[3]['name_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" id="'.$final_label.'_relationship_decision_3'.'" name="'.$final_label.'_relationship_decision_3'.'"  value="'.$response[3]['relationship_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" id="'.$final_label.'_address_decision_3'.'" name="'.$final_label.'_address_decision_3'.'"  value="'.$response[3]['address_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" id="'.$final_label.'_city_decision_3'.'" name="'.$final_label.'_city_decision_3'.'"  value="'.$response[3]['city_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" id="'.$final_label.'_phone_decision_3'.'" name="'.$final_label.'_phone_decision_3'.'"  value="'.$response[3]['phone_decision'].'" type="text"></td>';
                     $q .= '</tr>';
                     $q .= '</table>';
                     $q .= '</div>';
@@ -1244,11 +1236,12 @@ function renderNavButtons($previous,$next, $submit, $print_page = null) {
  * @param $p2    - Response from proxy_2
  * @param $p3    - Response from proxy_3
  * @param $final - Final text, if one exists.
- *1
+ * @param $proxy - array of emails of subject and proxies
+ *
  * @return string - HTML string
  */
 function renderAnswers($question_num, $orig, $p1, $p2, $p3, $final, $proxy) {
-    global $module;
+    global $module, $Proj;
     //what is last question field
     $questions = $module->getProjectSetting('questions');
     $last_question = end(array_values($questions));
@@ -1274,7 +1267,6 @@ function renderAnswers($question_num, $orig, $p1, $p2, $p3, $final, $proxy) {
 
     //$module->emDebug($proxy, $fields,$proxy_1_field,$proxy_2_field,$proxy_3_field); exit;
 
-    global $Proj;
     $metadata = $Proj->metadata;
     $field_type = $metadata[$question_num]['element_type'];
     //LetterProject::log($field_type, "===============FIELD_TYPE for $question_num");
