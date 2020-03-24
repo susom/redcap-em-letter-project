@@ -40,7 +40,7 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
     }
 
 
-    function hook_survey_complete($project_id, $record = NULL, $instrument, $event_id, $group_id, $survey_hash, $response_id, $repeat_instance)
+    function redcap_survey_complete($project_id, $record = NULL, $instrument, $event_id, $group_id, $survey_hash, $response_id, $repeat_instance)
     {
         $this->emDebug("Starting Hook Survey Complete", $instrument);
 
@@ -85,57 +85,58 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
 
     }
 
-    function hook_save_record($project_id, $record = NULL, $instrument, $event_id, $group_id = NULL, $survey_hash = NULL, $response_id = NULL, $repeat_instance = 1)
+    function redcap_save_record($project_id, $record = NULL, $instrument, $event_id, $group_id = NULL, $survey_hash = NULL, $response_id = NULL, $repeat_instance = 1)
     {
         //if this is the original letter in , then save it to the final letter
         if ($event_id = $this->getProjectSetting('first-event')) {
+            switch ($instrument) {
+                case  $this->getProjectSetting('starting-survey'):  //Public survey - starting point
+                    $this->emDebug("FIRST EVENT: STARTING SURVEY  SET HASH : $instrument and event: $event_id");
+                    $this->setHash($project_id, $record, $instrument);
+                    break;
+                case $this->getProjectSetting('email-survey'): //DECISION MAKER pages
+                    //march update: removing this complexity. just have three options
+                    //if this is the email survey, iterate through and copy over the teh first three selected to the proxy fields.
+                    //$this->emDebug("FIRST EVENT: STARTING SURVEY  SET HASH : $instrument and event: $event_id");
+                    //$this->setProxyEmails($project_id, $record, $instrument);
+                    break;
 
-            if ($instrument == $this->getProjectSetting('starting-survey')) {
+                case $this->getProjectSetting('letter-survey'):
+                    $this->emDebug("FIRST EVENT: COPYING OVER SURVEY: $instrument and event: $event_id");
+                    $this->copyToFinal($project_id, $record, $instrument, $event_id);
+                    break;
+                case $this->getProjectSetting('witness-survey'):
 
-                //set the Hash in the first form
-                $this->emDebug("FIRST EVENT: STARTING SURVEY  SET HASH : $instrument and event: $event_id");
-                $this->setHash($project_id, $record, $instrument);
+                    $this->emDebug("FIRST EVENT: COPYING OVER SURVEY: $instrument and event: $event_id");
+                    $this->copyToFinal($project_id, $record, $instrument, $event_id);
 
-            } elseif ($instrument == $this->getProjectSetting('email-survey')) {
 
-                //if this is the email survey, iterate through and copy over the teh first three selected to the proxy fields.
-                $this->emDebug("FIRST EVENT: STARTING SURVEY  SET HASH : $instrument and event: $event_id");
-                $this->setProxyEmails($project_id, $record, $instrument);
-
-            } else {
-
-                $this->emDebug("FIRST EVENT: COPYING OVER SURVEY: $instrument and event: $event_id");
-                $this->copyToFinal($project_id, $record, $instrument, $event_id);
-
-                //if this is the the witness-survey, copy over the signatures to the final form
-                if ($instrument == $this->getProjectSetting('witness-survey')) {
                     //get the edoc for these files
                     //get the signature fields
                     # Get current file fields (we don't want to include file fields that were deleted from the dictionary)
 
-//                    //xxyjl:  This only works if there are NO NON-SIGNATURE file uploads...
-//                    $file_fields = array();
-//                    foreach (REDCap::getFieldNames() as $field) {
-//                        if (REDCap::getFieldType($field) == 'file') $file_fields[] = $field;
-//                    }
-//                    if (!empty($file_fields)) {
-//                        $this->emDebug("No fields of type 'field' in this project.");
-//                    }
-
+                //TODO: confirm that signature fields are now copied over with a regular get and saveData??
+                /**
                     //just hardcoding the signature fields.
                     $file_fields  = array('patient_signature', 'adult_signature', 'witness1_signature',
                         'witness2_signature','declaration_signature', 'specialwitness_signature');
 
                     $sig_status = $this->copyOverSigFields($project_id, $record, $file_fields, $event_id);
-
-                }
+                 */
 
             }
-
         }
-
     }
 
+    /**
+     * Copy over the signature field from the passed in event
+     *
+     * @param $project_id
+     * @param $record
+     * @param $file_fields
+     * @param $event_id
+     * @return bool|\mysqli_result
+     */
     public function copyOverSigFields($project_id, $record, $file_fields, $event_id) {
         $final_event = $this->getProjectSetting('final-event');
 
@@ -153,10 +154,11 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
             'events'=>$event_id);
         $file_data = REDCap::getData($params);
 
-        $sigs = $file_data[$record][$event_id];
+        $sig_fields = $file_data[$record][$event_id];
 
         $values = array();
-        foreach ($file_data[$record][$event_id] as $field_name => $doc_id) {
+        foreach ($sig_fields as $field_name => $doc_id) {
+            $this->emDebug("checking $field_name with doc_id $doc_id");
             if (!empty($doc_id)) {
 
                 //check if already exists;
@@ -185,10 +187,12 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
         }
         $value_str = implode(',', $values);
 
-        $insert_sql = "INSERT INTO redcap_data (project_id, event_id,record,field_name,value) VALUES  " . $value_str .';';
-        $sig_status = db_query($insert_sql);
+        if (!empty($values)) {
 
-        $this->emDebug("SQL: ", $insert_sql,$sig_status);
+            $insert_sql = "INSERT INTO redcap_data (project_id, event_id,record,field_name,value) VALUES  " . $value_str . ';';
+            $sig_status = db_query($insert_sql);
+
+        }
 
 //        $this->emDebug($file_data);
 //        $this->emDebug($docs);
@@ -276,13 +280,12 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
                 break;
         }
 
-
-
         $data = array(
             REDCap::getRecordIdField() => $record,
             'redcap_event_name' => REDCap::getEventNames(true,false, $this->getProjectSetting('first-event')),
-            $email_field        => $email,
-            "send_".$email_field."___1" => '1'  //checkbox for email proxy field
+            $email_field        => $email
+            //feb update: remove the checkboxes
+            //"send_".$email_field."___1" => '1'  //checkbox for email proxy field
         );
         //$this->emDebug($event . " from " . $email_event, $data);
         $q= REDCap::saveData('json', json_encode(array($data)));
@@ -389,8 +392,6 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
             'redcap_event_name' => $event_name,
             $this->getProjectSetting('date-last-reconciled') => $timestamp
         );
-
-        $this->emDebug($event, $data);
 
         $q = REDCap::saveData('json', json_encode(array($data)));
 

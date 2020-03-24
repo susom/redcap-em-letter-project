@@ -25,9 +25,6 @@ if (!empty($_POST['action'])) {
     $action = $_POST['action'];
     $record = $_POST['record_id'];
 
-    $module->emDebug("=======================".$action);
-
-
     if ($action == 'saveResponse') {
         //save the timestamp
         $module->saveTimestamp($module->getProjectId(), $record, $module->getProjectSetting('first-event'));
@@ -170,7 +167,9 @@ while (isset($_POST['login'])) {
 
     $v_email_code = $verify_data[$participant_id][$first_event_id][$module->getProjectSetting('hash')];
 
+
     if (!($email_code === $v_email_code)) {
+        $module->emDebug("$email_code does not match $v_email_code");
         $_SESSION['msg'] = "Your code does not match the response expected from your link. Please use the link from your email.";
         break;
     }
@@ -252,22 +251,20 @@ function organizeResponses($record) {
         $part1 =  $matches[0]['part1'];
         $part2 =  $matches[0]['part2'];
 
-        //$module->emLog("PREFIX IS ".$prefix);
+        //$module->emLog("question is $question and   PREFIX IS ".$prefix . "part 1 is $part1 and part2 is $part2");
 
         foreach ($event_array as $event_name => $event_id) {
             //original and final arm have question prepended with 'q': i.e. q1, q2
             //proxy forms has it prepended with 'p_q': i.e. p_q1, p_q2, etc
-            //$prefix = (($event_name == 'original_arm_1') || ($event_name == 'final_arm_1')) ? 'q' : 'p_q';
-            //$module->emDebug($responses[$event_id]);
-
+            $proxy_prefix = (($event_name == 'original_arm_1') || ($event_name == 'final_arm_1')) ? '' : 'p_';
 
             if ($question == 'q2') {
                 //Question 2 is actually 4 questions that should be displayed together
                 $prefix = $question.'_milestone';
-                $reorganized[$question][$event_name] = array($responses[$event_id][$prefix . '_1'],
-                    $responses[$event_id][$prefix . '_2'],
-                    $responses[$event_id][$prefix . '_3'],
-                    $responses[$event_id][$prefix . '_4'],);
+                $reorganized[$question][$event_name] = array($responses[$event_id][$proxy_prefix.$prefix . '_1'],
+                    $responses[$event_id][$proxy_prefix.$prefix . '_2'],
+                    $responses[$event_id][$proxy_prefix.$prefix . '_3'],
+                    $responses[$event_id][$proxy_prefix.$prefix . '_4'],);
 
             } elseif ($question == 'q5') {
                 //Question 5 is actually multiple questions that should be displayed together
@@ -293,14 +290,11 @@ function organizeResponses($record) {
                 $reorganized[$question][$event_name]['q13_donate_following'] = $responses[$event_id]['q13_donate_following'];
 
             } else {
-                $reorganized[$question][$event_name] = $responses[$event_id][$question];
+                $reorganized[$question][$event_name] = $responses[$event_id][$proxy_prefix.$question];
             }
 
         }
     }
-
-    //$module->emLog($reorganized, "REORGANIZED");
-
     return $reorganized;
 }
 
@@ -445,6 +439,9 @@ $maker_data = getDecisionMakerData($record);
 */
     //make table with the decisiion makers
     $table =  "<div class='decision_maker'><table id='decision_maker'>";
+
+    //TODO Check first if notarized
+
     $table .= "<tr><th>My Decision Makers</th><th>Status</th><th>Send PDF of my letter</th></tr>";
     foreach ($maker_data as $k => $v) {
         $table .= "<tr>";
@@ -454,7 +451,10 @@ $maker_data = getDecisionMakerData($record);
         $table .= "</tr>";
 
     }
-    $table .="</table></div>";
+    $table .="</table>";
+
+    $table .="</div>";
+
 
     return $str.$table;
 }
@@ -903,6 +903,7 @@ function formatPrintAnswers($question_num, $field_type, $response) {
             $q .= "<p class='text_answer'>$response</p>";
             break;
     }
+
     return $q;
 }
 
@@ -1271,7 +1272,7 @@ function renderAnswers($question_num, $orig, $p1, $p2, $p3, $final, $proxy) {
         $fields[$proxy_3_field]=$p3;
     }
 
-    //$module->emDebug($proxy, $fields,$proxy_1_field,$proxy_2_field,$proxy_3_field); //exit;
+    //$module->emDebug($proxy, $fields,$proxy_1_field,$proxy_2_field,$proxy_3_field); exit;
 
     global $Proj;
     $metadata = $Proj->metadata;
@@ -1286,7 +1287,7 @@ function renderAnswers($question_num, $orig, $p1, $p2, $p3, $final, $proxy) {
 
     $q .= "<h2>Your Proxy Responses</h2>";
     foreach ($fields as $label => $response) {
-        //$module->emLog("Question num: $question_num / LABEL : $label / RESPONSE : ", $response);
+        //$module->emLog("Question num: $question_num / LABEL : $label / RESPONSE : ", $response);  exit;
 
         // if (!isset($response)) {
         //     continue;
