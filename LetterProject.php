@@ -116,14 +116,10 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
                     # Get current file fields (we don't want to include file fields that were deleted from the dictionary)
 
                 //TODO: confirm that signature fields are now copied over with a regular get and saveData??
-                /**
                     //just hardcoding the signature fields.
                     $file_fields  = array('patient_signature', 'adult_signature', 'witness1_signature',
                         'witness2_signature','declaration_signature', 'specialwitness_signature');
-
                     $sig_status = $this->copyOverSigFields($project_id, $record, $file_fields, $event_id);
-                 */
-
             }
         }
     }
@@ -139,8 +135,6 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
      */
     public function copyOverSigFields($project_id, $record, $file_fields, $event_id) {
         $final_event = $this->getProjectSetting('final-event');
-
-        $this->emDebug($record);
 
         $sig_status = true;
 
@@ -158,7 +152,7 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
 
         $values = array();
         foreach ($sig_fields as $field_name => $doc_id) {
-            $this->emDebug("checking $field_name with doc_id $doc_id");
+
             if (!empty($doc_id)) {
 
                 //check if already exists;
@@ -188,14 +182,9 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
         $value_str = implode(',', $values);
 
         if (!empty($values)) {
-
             $insert_sql = "INSERT INTO redcap_data (project_id, event_id,record,field_name,value) VALUES  " . $value_str . ';';
             $sig_status = db_query($insert_sql);
-
         }
-
-//        $this->emDebug($file_data);
-//        $this->emDebug($docs);
 
         return $sig_status;
     }
@@ -432,18 +421,14 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
             $results = json_decode($q, true);
             $result = current($results);
 
-            $this->emLog($result, "DEBUG", "Current Record");
-
             $hash = isset($result[$this->getProjectSetting('hash')]) ? $result[$this->getProjectSetting('hash')] : '';
             $hash_url = isset($result[$this->getProjectSetting('hash-url')]) ? $result[$this->getProjectSetting('hash-url')] : '';
-            $this->emDebug($hash, "Current Hash");
-            $this->emDebug($hash_url, "Current Hash Url");
+
             if (empty($hash)) {
                 // Generate a unique hash for this project
                 $new_hash = generateRandomHash(8, false, TRUE, false);
                 $api_url = $this->getUrl('ProxyLetterReconciliation.php', true, true);
                 $new_hash_url = $api_url . "&e=" . $new_hash;
-                $this->emDebug($new_hash_url, "New Hash ()");
 
                 // Save it to the record (both as hash and hash_url for piping)
                 $result[$this->getProjectSetting('hash')] = $new_hash;
@@ -454,32 +439,63 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
                 $this->emDebug($hash, $record . " has an existing hash url");
             }
         } else {
-            $this->emDebug("No Match", "DEBUG");
+            $this->emDebug("No Match");
         }
     }
 
     public function getResponseData($id, $select = null, $event = null)
     {
-        //       $this->emLog($id, "ID");
-//        $this->emLog($event, "EVENT");
         // get  responses for this ID and event
         $q = REDCap::getData('array', $id, $select, $event);
-        //$q = REDCap::getData('array', $id);
 
-        //$results = json_decode($q, true);
-
-        //$this->emLog($q, "RESULT");
         if (count($q) == 0) {
             $this->emError($q, "Unable to get responses for $id in event $event", "ERROR");
             return false;
         }
-
-        //$this->emLog($q, "DEBUG", "RESPONSE RESULT");
-        //$responses =  $results[0];
         return $q;
-
     }
 
+    /**
+     * Check various variables in the Witness and Signature page to determine whether the Letter is ready to
+     * be shared.
+     * checking with VJ for definitive list. In the meantime, using
+     *
+     *
+     */
+    public function getWitnessPageStatus($record, $event) {
+        //get all the fields needed to be completed for a witness form to be deemed complete
+        $required_fields = $this->getProjectSetting('witness_ready_fields'); //LetterProject::$config['questions'];
+
+        $all_populated = true;
+
+        $check_fields = array();
+        foreach ($required_fields as $num => $key) {
+            $check_fields[] = $key;
+        }
+
+        $params = array(
+            'return_format' => 'json',
+            'records'       => array($record),
+            'events'        => $event,
+            'fields'        => $check_fields
+        );
+
+        $q = REDCap::getData($params);
+        $records = json_decode($q, true);
+
+        //get the data and just make sure that there is value for both.
+        foreach (current($records) as $k => $v) {
+
+            if (empty($v)) {
+                $all_populated = false;
+                $this->emDebug("$k is not set, not yet ready to print PDF");
+                break;
+            }
+        }
+
+        return $all_populated;
+
+    }
 
 
 

@@ -175,6 +175,13 @@
       "name": "<b>Proxy 3 Event</b>",
       "required": false,
       "type": "event-list"
+    },
+    {
+      "key": "witness_ready_fields",
+      "name": "<b>Witness Form Fields</b><br>Select fields needed to be populated to deem a witness form complete",
+      "required": true,
+      "type": "field-list",
+      "repeatable": true
     }
   ]
 }

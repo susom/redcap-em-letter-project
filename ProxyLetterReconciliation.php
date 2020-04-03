@@ -124,7 +124,6 @@ if (!empty($_POST['action'])) {
         $module->emDebug($survey_link);
     }
 
-
     header('Content-Type: application/json');
     print json_encode($result);
     exit();
@@ -177,6 +176,14 @@ while (isset($_POST['login'])) {
     $record = $participant_id;
     $name = $verify_data[$participant_id][$first_event_id]['name'];
     $doctor_name = $verify_data[$participant_id][$first_event_id]['ltr_doctor_name'];
+
+    //check if the letter has been witnessed and signed
+    $witness_done = $module->getWitnessPageStatus($record, $first_event_id);
+    if ($witness_done === false) {
+        $module->emDebug("WITNESS NOT YET DONE");
+    } else {
+        $module->emDebug("WITNESS COMPLETED");
+    }
 
     //get surveyURL for final witness form
     $event_id = $module->getProjectSetting('final-event');
@@ -305,7 +312,6 @@ function renderTabs() {
     $index = 2;
 
     $questions = $module->getProjectSetting('questions'); //LetterProject::$config['questions'];
-    $module->emLog($questions, "QUESTIONS");
 
     foreach ($questions as $num => $key) {
 
