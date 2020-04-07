@@ -215,7 +215,7 @@ while (isset($_POST['login'])) {
 include "pages/login.php";
 
 /**
- * Reorganize REDCap getData result to be of foramte
+ * Reorganize REDCap getData result to be of format
  *   [question number] [event_name]
  * @param $record
  * @return array
@@ -223,29 +223,28 @@ include "pages/login.php";
 function organizeResponses($record) {
     global $module;
 
-    //getData('array', $record) return
     $responses = $module->getResponseData($record);
-    //$module->emLog($responses, "RESPONSES");
     $responses = $responses[$record];
 
-    $first_event = $module->getProjectSetting('first-event');
-    $last_event = $module->getProjectSetting('final-event');
     $questions = $module->getProjectSetting('questions');
 
     $reorganized = array();
+    $event_array = array();
+    //create an event array of all the events in this project
+    $event_list = array(
+        $module->getProjectSetting('first-event'),
+        $module->getProjectSetting('proxy-1-event'),
+        $module->getProjectSetting('proxy-2-event'),
+        $module->getProjectSetting('proxy-3-event'),
+        $module->getProjectSetting('final-event')
+    );
 
-
-    //foreach (LetterProject::$config['events'] as $event => $label) {
-    foreach ($module->getProjectSetting('events') as $event_id) {
-
+    foreach ($event_list as $event_id) {
         $event_name = \REDCap::getEventNames(true, false, $event_id);
         $event_array[$event_name] = $event_id; //REDCap::getEventIdFromUniqueEvent($event);
     }
-     $event_array = array(\REDCap::getEventNames(true, false, $first_event)=>$first_event) + $event_array;
-    //$first_event_array[\REDCap::getEventNames(true, false, $first_event)]=$first_event;
-    //array_unshift($event_array, $first_event_array);
-    $event_array[\REDCap::getEventNames(true, false, $last_event)] = $last_event;
-    //$module->emDebug($event_array, "EVENT ARRAY"); exit;
+    $module->emDebug($event_array, "EVENT ARRAY TEST");
+
 
     //iterate over the question list from the config
     foreach ($questions as $num => $question) {
