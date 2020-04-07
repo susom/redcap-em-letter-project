@@ -506,21 +506,24 @@ function getDecisionMakerData($record_id) {
 
     //now get the completion status
     $main_status = getCompletionStatus($module->getProjectSetting('first-event'), $record_id);
-    $event_1_status = getCompletionStatus($module->getProjectSetting('proxy-1-event'), $record_id);
-    $event_2_status = getCompletionStatus($module->getProjectSetting('proxy-2-event'), $record_id);
-    $event_3_status = getCompletionStatus($module->getProjectSetting('proxy-3-event'), $record_id);
+    $event_1_status = getCompletionStatus($module->getProjectSetting('proxy-1-event'), $record_id, true);
+    $event_2_status = getCompletionStatus($module->getProjectSetting('proxy-2-event'), $record_id, true);
+    $event_3_status = getCompletionStatus($module->getProjectSetting('proxy-3-event'), $record_id, true);
+
 
     $completion_field = $module->getProjectSetting('letter-survey').'_complete';
     $timestamp_field = $module->getProjectSetting('letter-survey').'_timestamp';
+    $proxy_completion_field = $module->getProjectSetting('proxy-survey').'_complete';
+    $proxy_timestamp_field = $module->getProjectSetting('proxy-survey').'_timestamp';
 
     $send_data[$email_field]['status'] = $main_status[$completion_field];
-    $send_data[$proxy_1_field]['status'] = $event_1_status[$completion_field];
-    $send_data[$proxy_2_field]['status'] = $event_2_status[$completion_field];
-    $send_data[$proxy_3_field]['status'] = $event_3_status[$completion_field];
+    $send_data[$proxy_1_field]['status'] = $event_1_status[$proxy_completion_field];
+    $send_data[$proxy_2_field]['status'] = $event_2_status[$proxy_completion_field];
+    $send_data[$proxy_3_field]['status'] = $event_3_status[$proxy_completion_field];
     $send_data[$email_field]['timestamp'] = $main_status[$timestamp_field];
-    $send_data[$proxy_1_field]['timestamp'] = $event_1_status[$timestamp_field];
-    $send_data[$proxy_2_field]['timestamp'] = $event_2_status[$timestamp_field];
-    $send_data[$proxy_3_field]['timestamp'] = $event_3_status[$timestamp_field];
+    $send_data[$proxy_1_field]['timestamp'] = $event_1_status[$proxy_timestamp_field];
+    $send_data[$proxy_2_field]['timestamp'] = $event_2_status[$proxy_timestamp_field];
+    $send_data[$proxy_3_field]['timestamp'] = $event_3_status[$proxy_timestamp_field];
 
     //$module->emDebug($send_data); exit;
 
@@ -601,12 +604,23 @@ function getSurveyStatus($record_id, $row, $last_timestamp_str, $event) {
 
 }
 
-
-function getCompletionStatus($event, $record) {
+/**
+ * Check the completion status of the proxy letters to report to the portal.
+ * Latest change: if proxy now uses a different form.
+ * @param $event
+ * @param $record
+ * @return mixed|null
+ */
+function getCompletionStatus($event, $record, $proxy = false) {
     global $module;
 
     $completion_field = $module->getProjectSetting('letter-survey').'_complete';
     $timestamp_field = $module->getProjectSetting('letter-survey').'_timestamp';
+
+    if ($proxy == true) {
+        $completion_field = $module->getProjectSetting('proxy-survey').'_complete';
+        $timestamp_field = $module->getProjectSetting('proxy-survey').'_timestamp';
+    }
 
     $params = array(
         'project_id' => $module->getProjectId(),

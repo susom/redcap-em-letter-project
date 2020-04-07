@@ -92,6 +92,12 @@
       "type": "form-list"
     },
     {
+      "key": "proxy-survey",
+      "name": "<b>Proxy Letter Survey</b>",
+      "required": false,
+      "type": "form-list"
+    },
+    {
       "key": "witness-survey",
       "name": "<b>Witness Survey</b>",
       "required": false,
