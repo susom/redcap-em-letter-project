@@ -152,6 +152,24 @@
       "type": "field-list"
     },
     {
+      "key": "proxy-1-name-field",
+      "name": "<b>Proxy 1 Name field</b>",
+      "required": false,
+      "type": "field-list"
+    },
+    {
+      "key": "proxy-2-name-field",
+      "name": "<b>Proxy 2 Name field</b>",
+      "required": false,
+      "type": "field-list"
+    },
+    {
+      "key": "proxy-3-name-field",
+      "name": "<b>Proxy 3 Name field</b>",
+      "required": false,
+      "type": "field-list"
+    },
+    {
       "key": "questions",
       "name": "<b>Question fields</b>",
       "required": false,

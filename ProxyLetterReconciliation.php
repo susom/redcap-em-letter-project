@@ -106,7 +106,7 @@ if (!empty($_POST['action'])) {
             //todo: check send status
         $module->emDebug("Saving MEW EMAIL ", $q);
         if ($status) {
-            $result = array("result" => "success", "message" => "A new email $email was added as a proxy");
+            $result = array("result" => "success", "message" => "A proxy invitation email was sent to  $email");
         } else {
             $result = array("result" => "fail", "message" => "There was an error attempting to save the email.");
         }
@@ -161,8 +161,7 @@ while (isset($_POST['login'])) {
     $verify_data = $module->getResponseData($participant_id, array('name','ltr_doctor_name',$module->getProjectSetting('hash')), $first_event_id);
     //$event_id = REDCap::getEventIdFromUniqueEvent($first_event);
 
-
-    $module->emDebug($verify_data, "VERIFY DATA for $code with event $first_event_id and participant id $participant_id ".$module->getProjectSetting('hash'));
+    //$module->emDebug($verify_data, "VERIFY DATA for $code with event $first_event_id and participant id $participant_id ".$module->getProjectSetting('hash'));
 
     $v_email_code = $verify_data[$participant_id][$first_event_id][$module->getProjectSetting('hash')];
 
@@ -443,7 +442,7 @@ $maker_data = getDecisionMakerData($record);
 
     //TODO Check first if notarized
 
-    $table .= "<tr><th>My Decision Makers</th><th>Status</th><th>Send PDF of my letter</th></tr>";
+    $table .= "<tr><th>My Decision Makers</th><th>Email</th><th>Status</th><th>Send PDF of my letter</th></tr>";
     foreach ($maker_data as $k => $v) {
         $table .= "<tr>";
         foreach ($v as $row => $element) {
@@ -464,9 +463,12 @@ function getDecisionMakerData($record_id) {
     global $module;
 
     $email_field = $module->getProjectSetting('code-field');
-    $proxy_1_field = $module->getProjectSetting('proxy-1-field');
-    $proxy_2_field =  $module->getProjectSetting('proxy-2-field');
-    $proxy_3_field = $module->getProjectSetting('proxy-3-field');
+    $proxy_1_name_field = $module->getProjectSetting('proxy-1-name-field');
+    $proxy_2_name_field = $module->getProjectSetting('proxy-2-name-field');
+    $proxy_3_name_field = $module->getProjectSetting('proxy-3-name-field');
+    $proxy_1_field      = $module->getProjectSetting('proxy-1-field');
+    $proxy_2_field      = $module->getProjectSetting('proxy-2-field');
+    $proxy_3_field      = $module->getProjectSetting('proxy-3-field');
     $date_last_reconciled =  $module->getProjectSetting('date-last-reconciled');
 
     $params = array(
@@ -478,6 +480,9 @@ function getDecisionMakerData($record_id) {
                 $proxy_1_field, //$module->getProjectSetting('proxy-1-field'),
                 $proxy_2_field, //$module->getProjectSetting('proxy-2-field'),
                 $proxy_3_field, //$module->getProjectSetting('proxy-3-field')
+                $proxy_1_name_field,
+                $proxy_2_name_field,
+                $proxy_3_name_field,
                 $date_last_reconciled
             ),
             'records' => $record_id
@@ -486,16 +491,19 @@ function getDecisionMakerData($record_id) {
 
         //$q = \REDCap::getData($module->getProjectId(), 'json',  array($record_id), null, $module->getProjectSetting('final-event'));
     $final_data = json_decode($data, true);
-        //$module->emDebug($params,$module->getProjectId(),$module->getProjectSetting('final-event'), $final_data, $record_id, "FINAL DATA");
+    //$module->emDebug($params,$module->getProjectId(),$module->getProjectSetting('final-event'), $final_data, $record_id, "FINAL DATA");
 
         //
-    $module->emDebug($params,$final_data);
+    //$module->emDebug($params,$final_data); exit;
     $final_data = current($final_data);
 
     $send_data[$email_field]['email'] = $final_data[$email_field];
     $send_data[$proxy_1_field]['email'] = $final_data[$proxy_1_field];
     $send_data[$proxy_2_field]['email'] = $final_data[$proxy_2_field];
     $send_data[$proxy_3_field]['email'] = $final_data[$proxy_3_field];
+    $send_data[$proxy_1_field]['name'] = $final_data[$proxy_1_name_field];
+    $send_data[$proxy_2_field]['name'] = $final_data[$proxy_2_name_field];
+    $send_data[$proxy_3_field]['name'] = $final_data[$proxy_3_name_field];
 
     //now get the completion status
     $main_status = getCompletionStatus($module->getProjectSetting('first-event'), $record_id);
@@ -515,15 +523,15 @@ function getDecisionMakerData($record_id) {
     $send_data[$proxy_2_field]['timestamp'] = $event_2_status[$timestamp_field];
     $send_data[$proxy_3_field]['timestamp'] = $event_3_status[$timestamp_field];
 
-    //$module->emDebug($send_data);
+    //$module->emDebug($send_data); exit;
 
+    //rearrange the data by proxy event
     $return_data = array();
     foreach ($send_data as $event => $row) {
-        //$module->emDebug("EVENT is ".$event);
         $return_data[] = getSurveyStatus($record_id, $row, $final_data[$date_last_reconciled], $event);
     }
 
-    //$module->emDebug($return_data);
+    //$module->emDebug($return_data); exit;
     return $return_data;
 
 }
@@ -546,6 +554,7 @@ function getSurveyStatus($record_id, $row, $last_timestamp_str, $event) {
     //$module->emDebug($last_timestamp_str, $row);
     $email = $row['email'];
     $status = $row['status'];
+    $name   = $row['name'];
 
     $ts_string = $row['timestamp'];
     $ts = new DateTime($ts_string);
@@ -563,7 +572,7 @@ function getSurveyStatus($record_id, $row, $last_timestamp_str, $event) {
 
         } else {
 
-            $module->emDebug('COMPLETED' . $ts->getTimestamp() . ' is greater than '. $last_ts->getTimestamp());
+            $module->emDebug('COMPLETED TS : ' . $ts->getTimestamp() . ' is greater than '. $last_ts->getTimestamp());
             $completion_status = 'Completed';
         }
         $button_html = '<button id="'. $email .'" class="btn btn-lg btn-block btn-primary send-pdf" data-id="'. $record_id .'" data-email="'. $email .'" name="send">SEND to '.$email.'</button>';
@@ -574,9 +583,9 @@ function getSurveyStatus($record_id, $row, $last_timestamp_str, $event) {
             $button_html = '<button id="'. $email .'" class="btn btn-lg btn-block btn-primary send-pdf" data-id="'. $record_id .'" data-email="'. $email .'" name="send">SEND to '.$email.'</button>';
         } else {
             //create a text field for
-            $completion_status = '<button id="'. $email .'" class="btn btn-lg btn-block btn-primary send-invite" data-id="'. $record_id .'" data-event="'. $event .'" name="send">SEND invitation to new proxy</button>';
+            $completion_status = '<button id="'. $email .'" class="btn btn-lg btn-block btn-primary send-invite" data-id="'. $record_id .'" data-event="'. $event .'" name="send">SEND invitation to proxy</button>';
             //$email ='Enter another proxy:<br> <input type="text" name="fname">';
-            $email =' <input class="proxy_email_input" type="text" id="proxy_email_'.$event.'" placeholder="Enter another proxy email.">';
+            $email =' <input class="proxy_email_input" type="text" id="proxy_email_'.$event.'" placeholder="Enter proxy\'s email.">';
                 $foo = '<div>
                 <input type="text" id="proxy" placeholder="Enter another proxy email."/>
             </div>';
@@ -588,8 +597,8 @@ function getSurveyStatus($record_id, $row, $last_timestamp_str, $event) {
 
 
     //button
-
-    return array($email, $completion_status, $button_html);
+    //Sequence here determines column sequence in the table
+    return array($name, $email, $completion_status, $button_html);
 
 }
 
@@ -610,7 +619,7 @@ function getCompletionStatus($event, $record) {
     );
     $data = REDCap::getData($params);
     $final_data = json_decode($data, true);
-    $module->emDebug($event, $params,$final_data);
+    //$module->emDebug($event, $params,$final_data);
     if (!empty($final_data)) {
         return current($final_data);
     }
@@ -620,7 +629,7 @@ function getCompletionStatus($event, $record) {
 
 function getPDFPage($proxy) {
     global $module;
-    $module->emDebug($proxy);
+    //$module->emDebug($proxy);
 
     //    $str = "<div class=\"jumbotron text-center\">
     //                    <div id='pdf_page_one'>this is the print page. Perhaps some PDF here?</div>
