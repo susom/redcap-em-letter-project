@@ -550,7 +550,6 @@ function getDecisionMakerData($record_id) {
 
     //rearrange the data by proxy event
     $return_data = array();
-    print_r($send_data);
     foreach ($send_data as $event => $row) {
         $return_data[] = getSurveyStatus($record_id, $row, $final_data[$date_last_reconciled], $event);
     }
