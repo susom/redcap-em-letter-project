@@ -331,7 +331,6 @@ function renderTabDivs($record) {
     $questions = $module->getProjectSetting('questions'); //LetterProject::$config['questions'];
     $responses = organizeResponses($record);
     //$module->emDebug($responses);  exit;
-
     $maker_data = getDecisionMakerData($record);
 
     $q = REDCap::getData(
@@ -440,11 +439,17 @@ $maker_data = getDecisionMakerData($record);
     $table =  "<div class='decision_maker'><table id='decision_maker'>";
 
     //TODO Check first if notarized
-
     $table .= "<tr><th>My Decision Makers</th><th>Email</th><th>Status</th><th>Send PDF of my letter</th></tr>";
     foreach ($maker_data as $k => $v) {
+        // NEED TO BORROW THIS VARIABLE TO SHOWCUSTOM DISPLAY ROW
+        if($v[3] == "invite_row"){
+            $table .= "<tr><td colspan=4><hr/></td></tr>";
+        }
+
         $table .= "<tr>";
         foreach ($v as $row => $element) {
+            // hacky but needed a way to signal above invite_row display change
+            $element = $element == "invite_row" ? "" : $element;
             $table .= "<td>$element</td>";
         }
         $table .= "</tr>";
@@ -461,74 +466,91 @@ $maker_data = getDecisionMakerData($record);
 function getDecisionMakerData($record_id) {
     global $module;
 
-    $email_field = $module->getProjectSetting('code-field');
-    $proxy_1_name_field = $module->getProjectSetting('proxy-1-name-field');
-    $proxy_2_name_field = $module->getProjectSetting('proxy-2-name-field');
-    $proxy_3_name_field = $module->getProjectSetting('proxy-3-name-field');
-    $proxy_1_field      = $module->getProjectSetting('proxy-1-field');
-    $proxy_2_field      = $module->getProjectSetting('proxy-2-field');
-    $proxy_3_field      = $module->getProjectSetting('proxy-3-field');
-    $date_last_reconciled =  $module->getProjectSetting('date-last-reconciled');
+    $email_field            = $module->getProjectSetting('code-field');
+    $proxy_1_name_field     = $module->getProjectSetting('proxy-1-name-field');
+    $proxy_2_name_field     = $module->getProjectSetting('proxy-2-name-field');
+    $proxy_3_name_field     = $module->getProjectSetting('proxy-3-name-field');
+    $proxy_1_field          = $module->getProjectSetting('proxy-1-field');
+    $proxy_2_field          = $module->getProjectSetting('proxy-2-field');
+    $proxy_3_field          = $module->getProjectSetting('proxy-3-field');
+    $date_last_reconciled   = $module->getProjectSetting('date-last-reconciled');
+    $patient_witness_fields = $module->getProjectSetting('witness_ready_fields');
+
+    $fields = array($email_field, //$module->getProjectSetting('code-field'),
+                    $proxy_1_field, //$module->getProjectSetting('proxy-1-field'),
+                    $proxy_2_field, //$module->getProjectSetting('proxy-2-field'),
+                    $proxy_3_field, //$module->getProjectSetting('proxy-3-field')
+                    $proxy_1_name_field,
+                    $proxy_2_name_field,
+                    $proxy_3_name_field,
+                    $date_last_reconciled
+                );
+
+    foreach($patient_witness_fields as $fieldname){
+        array_push($fields, $fieldname);
+    }
 
     $params = array(
             'project_id' => $module->getProjectId(),
             'return_format' => 'json',
             'events' => array($module->getProjectSetting('first-event')),
-            'fields' => array(
-                $email_field, //$module->getProjectSetting('code-field'),
-                $proxy_1_field, //$module->getProjectSetting('proxy-1-field'),
-                $proxy_2_field, //$module->getProjectSetting('proxy-2-field'),
-                $proxy_3_field, //$module->getProjectSetting('proxy-3-field')
-                $proxy_1_name_field,
-                $proxy_2_name_field,
-                $proxy_3_name_field,
-                $date_last_reconciled
-            ),
+            'fields' => $fields,
             'records' => $record_id
     );
     $data = REDCap::getData($params);
 
-        //$q = \REDCap::getData($module->getProjectId(), 'json',  array($record_id), null, $module->getProjectSetting('final-event'));
+    //$q = \REDCap::getData($module->getProjectId(), 'json',  array($record_id), null, $module->getProjectSetting('final-event'));
     $final_data = json_decode($data, true);
     //$module->emDebug($params,$module->getProjectId(),$module->getProjectSetting('final-event'), $final_data, $record_id, "FINAL DATA");
 
-        //
     //$module->emDebug($params,$final_data); exit;
     $final_data = current($final_data);
 
-    $send_data[$email_field]['email'] = $final_data[$email_field];
+    
+
+    $send_data[$email_field]['email']   = $final_data[$email_field];
     $send_data[$proxy_1_field]['email'] = $final_data[$proxy_1_field];
     $send_data[$proxy_2_field]['email'] = $final_data[$proxy_2_field];
     $send_data[$proxy_3_field]['email'] = $final_data[$proxy_3_field];
-    $send_data[$proxy_1_field]['name'] = $final_data[$proxy_1_name_field];
-    $send_data[$proxy_2_field]['name'] = $final_data[$proxy_2_name_field];
-    $send_data[$proxy_3_field]['name'] = $final_data[$proxy_3_name_field];
+
+    $send_data[$proxy_1_field]['name']  = $final_data[$proxy_1_name_field];
+    $send_data[$proxy_2_field]['name']  = $final_data[$proxy_2_name_field];
+    $send_data[$proxy_3_field]['name']  = $final_data[$proxy_3_name_field];
+    $send_data[$proxy_3_field]['name']  = $final_data[$proxy_3_name_field];
 
     //now get the completion status
-    $main_status = getCompletionStatus($module->getProjectSetting('first-event'), $record_id);
+    $main_status    = getCompletionStatus($module->getProjectSetting('first-event'), $record_id);
     $event_1_status = getCompletionStatus($module->getProjectSetting('proxy-1-event'), $record_id, true);
     $event_2_status = getCompletionStatus($module->getProjectSetting('proxy-2-event'), $record_id, true);
     $event_3_status = getCompletionStatus($module->getProjectSetting('proxy-3-event'), $record_id, true);
 
-
-    $completion_field = $module->getProjectSetting('letter-survey').'_complete';
-    $timestamp_field = $module->getProjectSetting('letter-survey').'_timestamp';
+    $completion_field       = $module->getProjectSetting('letter-survey').'_complete';
+    $timestamp_field        = $module->getProjectSetting('letter-survey').'_timestamp';
     $proxy_completion_field = $module->getProjectSetting('proxy-survey').'_complete';
-    $proxy_timestamp_field = $module->getProjectSetting('proxy-survey').'_timestamp';
+    $proxy_timestamp_field  = $module->getProjectSetting('proxy-survey').'_timestamp';
 
-    $send_data[$email_field]['status'] = $main_status[$completion_field];
-    $send_data[$proxy_1_field]['status'] = $event_1_status[$proxy_completion_field];
-    $send_data[$proxy_2_field]['status'] = $event_2_status[$proxy_completion_field];
-    $send_data[$proxy_3_field]['status'] = $event_3_status[$proxy_completion_field];
-    $send_data[$email_field]['timestamp'] = $main_status[$timestamp_field];
+    $send_data[$email_field]['status']      = $main_status[$completion_field];
+    $send_data[$proxy_1_field]['status']    = $event_1_status[$proxy_completion_field];
+    $send_data[$proxy_2_field]['status']    = $event_2_status[$proxy_completion_field];
+    $send_data[$proxy_3_field]['status']    = $event_3_status[$proxy_completion_field];
+    
+    $send_data[$email_field]['timestamp']   = $main_status[$timestamp_field];
     $send_data[$proxy_1_field]['timestamp'] = $event_1_status[$proxy_timestamp_field];
     $send_data[$proxy_2_field]['timestamp'] = $event_2_status[$proxy_timestamp_field];
     $send_data[$proxy_3_field]['timestamp'] = $event_3_status[$proxy_timestamp_field];
 
+    // not sure how this will go in the future with multiple fields?
+    // for now just the first one is needed so lets reviist
+    // TODO figure out final form of this 
+    $send_data[$email_field]['signature']   = true;
+    $send_data[$proxy_1_field]['signature'] = $final_data[$patient_witness_fields[0]] ?? null;;
+    $send_data[$proxy_2_field]['signature'] = $final_data[$patient_witness_fields[0]] ?? null;;
+    $send_data[$proxy_3_field]['signature'] = $final_data[$patient_witness_fields[0]] ?? null;;
     //$module->emDebug($send_data); exit;
 
     //rearrange the data by proxy event
     $return_data = array();
+    print_r($send_data);
     foreach ($send_data as $event => $row) {
         $return_data[] = getSurveyStatus($record_id, $row, $final_data[$date_last_reconciled], $event);
     }
@@ -554,13 +576,17 @@ function getSurveyStatus($record_id, $row, $last_timestamp_str, $event) {
     global $module;
 
     //$module->emDebug($last_timestamp_str, $row);
-    $email = $row['email'];
+    $email  = $row['email'];
     $status = $row['status'];
     $name   = $row['name'];
 
-    $ts_string = $row['timestamp'];
-    $ts = new DateTime($ts_string);
-    $last_ts = new DateTime($last_timestamp_str);
+    // signature (boolean) will control send pdf button
+    $signature  = $row["signature"];
+    $disabled   = empty($signature) ? "disabled" : "";
+
+    $ts_string  = $row['timestamp'];
+    $ts         = new DateTime($ts_string);
+    $last_ts    = new DateTime($last_timestamp_str);
 
     //$module->emDebug($ts, $last_ts);
 
@@ -577,22 +603,26 @@ function getSurveyStatus($record_id, $row, $last_timestamp_str, $event) {
             $module->emDebug('COMPLETED TS : ' . $ts->getTimestamp() . ' is greater than '. $last_ts->getTimestamp());
             $completion_status = 'Completed';
         }
-        $button_html = '<button id="'. $email .'" class="btn btn-lg btn-block btn-primary send-pdf" data-id="'. $record_id .'" data-email="'. $email .'" name="send">SEND to '.$email.'</button>';
+        $button_html = '<button id="'. $email .'" class="btn btn-sm btn-block btn-primary send-pdf " '.$disabled.' data-id="'. $record_id .'" data-email="'. $email .'" name="send" >Send PDF <i style="background:url('.$module->getUrl('images/mail_pdf.png',true,true ).') no-repeat; background-size:contain;"></i></button>';
     } else {
         //if there is an email, then waiting
         if (!empty($email)) {
             $completion_status = 'Waiting for response';
-            $button_html = '<button id="'. $email .'" class="btn btn-lg btn-block btn-primary send-pdf" data-id="'. $record_id .'" data-email="'. $email .'" name="send">SEND to '.$email.'</button>';
+            $button_html = '<button id="'. $email .'" class="btn btn-sm btn-block btn-primary send-pdf " '.$disabled.'  data-id="'. $record_id .'" data-email="'. $email .'" name="send">Send PDF <i style="background:url('.$module->getUrl('images/mail_pdf.png',true,true ).') no-repeat; background-size:contain;"></i></button>';
         } else {
+            //hijack naem + $button_html for custom display
+            $name           = "Invite a new proxy:";
+            $button_html    = 'invite_row';
+
             //create a text field for
-            $completion_status = '<button id="'. $email .'" class="btn btn-lg btn-block btn-primary send-invite" data-id="'. $record_id .'" data-event="'. $event .'" name="send">SEND invitation to proxy</button>';
+            $completion_status = '<button id="'. $email .'" class="btn btn-sm btn-block btn-info send-invite" data-id="'. $record_id .'" data-event="'. $event .'" name="send">Send Invitation</button>';
             //$email ='Enter another proxy:<br> <input type="text" name="fname">';
             $email =' <input class="proxy_email_input" type="text" id="proxy_email_'.$event.'" placeholder="Enter proxy\'s email.">';
                 $foo = '<div>
                 <input type="text" id="proxy" placeholder="Enter another proxy email."/>
             </div>';
             //$button_html = '<button id="email_holder" class="btn btn-lg btn-block btn-primary send-invite"  data-id="'. $record_id .'" data-event="'. $event .'"  name="send-invite">SEND invitation to new proxy</button>';
-            $button_html = '';
+            
 
         }
     }

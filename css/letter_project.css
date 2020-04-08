@@ -92,9 +92,16 @@
     padding-bottom: 8px;
     padding-left: 10px;
     padding-right: 10px;
-    border: 3px solid #CCCCCC;
     width:80%;
     height:80%;
+}
+
+.send-pdf i {
+    display:inline-block;
+    width:22px; height:22px;
+    background-size:contain;
+    vertical-align: bottom;
+    margin-left:5px;
 }
 
 .form-group.greyed {
@@ -140,9 +147,10 @@ label{
 
 input[type='text'] {
     width: 100%;
-    margin:0 0 5px;
+    margin:0;
     padding:5px 10px;
     border-radius:5px;
+    vertical-align:text-top
 }
 textarea  {
     width:100%;
