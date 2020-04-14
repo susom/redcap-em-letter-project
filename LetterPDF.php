@@ -18,7 +18,8 @@ class LetterPDF extends TCPDF
         global $module;
 
         $from_name = $this->CustomHeaderText;
-        $img = $module->getUrl('images/shc_barcode.png');
+        //$img = $module->getUrl('images/shc_barcode.png');  //there is a bug in tcpdf that using png only prints images in first couple of page
+        $img = $module->getUrl('images/shc_barcode.jpg');
 
         $this->SetFont('arial', 'A', 8);
         $this->SetXY(15, 5);
@@ -39,10 +40,10 @@ class LetterPDF extends TCPDF
 
         $this->SetXY(90, 8);
         //$this->Image('images/shc_barcode.png', 105, 6, 40, 40, '', '', 'T', false, 300, '', false, false, 1, false, false, false);
-        $this->Image($img, 135, 8, '', 9, '', '', 'T', false, 300, '', false, false, 1, false, false, false);
+        $this->Image($img, 135, 8, '', 9, '', '', 'T', false, 300, '', false, false, false, false, false, false);
 
         $this->SetXY(105, 17);
-        $this->Cell(90, 4, 'ADMIN ADVANCE DIRECTIVE:', 'L', 0, 'C', 0, '', 0, false, 'T', 'C');
+        $this->Cell(90, 4, 'ADVANCE DIRECTIVE:', 'L', 0, 'C', 0, '', 0, false, 'T', 'C');
         $this->SetXY(105, 20);
         $this->Cell(90, 4, 'WHAT MATTERS MOST', 0, 0, 'C', 0, '', 0, false, 'T', 'C');
 
@@ -81,6 +82,8 @@ class LetterPDF extends TCPDF
         global $module;
         $doctor_name = $final_data['ltr_doctor_name'];
         $from_name = $final_data['ltr_name'];
+        $css = file_get_contents($module->getModulePath() . 'css/letter_project_pdf.css');
+
 
         //$module->emDebug("DOCTOR name is $doctor_name", nl2br($final_data['q1']));
         $q1 = nl2br($final_data['q1']);
@@ -89,22 +92,7 @@ class LetterPDF extends TCPDF
         $html = <<<EOF
 
 <head>
-<style>
-.cls_section {background-color:#e1e1e1;color:#962b28;font-size:18pt; font-weight:bold}
-.cls_question {font-weight:bold }
-.cls_example {font-style:italic }
-.cls_response {
-  border-bottom: 1px solid black;
-  min-width: 100px;
-}
-.cls_response_2 {
-text-decoration: underline; 
-white-space: pre;
-}
-.cls_response_4 {
-color:#1b1fff;
-}
-</style>
+<style>{$css}</style>
 </head>
 <body>
 <div class="cls_section"><span>Part 1: Tell Us about What Matters Most to You</span></div>
@@ -136,31 +124,17 @@ EOF;
     }
 
     public static function makeHTMLPage2($record_id, $final_data) {
-
+        global $module;
         //preserve the line feeds
         $q4 = nl2br($final_data['q4']);
+
+        $css = file_get_contents($module->getModulePath() . 'css/letter_project_pdf.css');
 
 
 
         $html = <<<EOF
 <head>
-<style>
-    .cls_section {background-color:#e1e1e1;color:#962b28;font-size:18pt; font-weight:bold}
-    .cls_question {font-weight:bold }
-    .cls_example {font-style:italic }
-    .cls_response {
-      border-bottom: 1px solid black;
-      min-width: 100px;
-    }
-.cls_response_2 {
-text-decoration: underline; 
-white-space: pre;
-}
-.cls_response_4 {
-color:#1b1fff;
-}
-    .cls_grey_bkgd {background-color:#e1e1e1;font-weight:bold}
-</style>
+<style>{$css}</style>
 </head>
 <body>
 <div class="cls_section">
@@ -239,12 +213,19 @@ EOF;
         // {$dd['q7_cpr']['field_label']}  //did not use because need to bold main and remove link formatting
 
         $q7_cpr_label = "<b>CPR (Cardiopulmonary Resuscitation)</b>: Using electric shocks, chest compressions and a breathing tube to try to make the heart beat again and restore breathing after it has stopped";  //{$dd['q7_cpr']['field_label']}
+        $q7_cpr_inst  = nl2br($final_data['q7_cpr_inst']);
 
         $q7_breathing_label = "<b>Breathing machine support (ventilator)</b>";
-        $q7_dialyses_label = "<b>Kidney dialysis</b>"; //{$dd['q7_dialyses']['field_label']}
-        $q7_transfusions_label = "<b>Blood transfusions</b>";  //{$dd['q7_transfusions']['field_label']}
-        $q7_food_label = "<b>Artificial food and fluids</b> placed directly into my vein or stomach to give me liquid food.";  //{$dd['q7_food']['field_label']}
+        $q7_breathing_inst = nl2br($final_data['q7_breathing_inst']);
 
+        $q7_dialyses_label = "<b>Kidney dialyses</b>"; //{$dd['q7_dialyses']['field_label']}
+        $q7_dialyses_inst = nl2br($final_data['q7_dialyses_inst']);
+
+        $q7_transfusions_label = "<b>Blood transfusions</b>";  //{$dd['q7_transfusions']['field_label']}
+        $q7_transfusions_inst = nl2br($final_data['q7_transfusions_inst']);
+
+        $q7_food_label = "<b>Artificial food and fluids</b> placed directly into my vein or stomach to give me liquid food.";  //{$dd['q7_food']['field_label']}
+        $q7_food_inst = nl2br($final_data['q7_food_inst']);
 
         $q7_decoded = $final_data['q7_cpr'] == 1 ? 'Refuse' : 'Accept';
         $q7_breathing = $final_data['q7_breathing'] == 1 ? 'Refuse' : 'Accept';
@@ -262,30 +243,30 @@ $tbl1 =
         <th style="width: 30%;">Specific Instructions<br>(example: for how long)</th>
     </tr>
     <tr>
-        <th class='shazam'><span>$q7_cpr_label</span></th>
-        <td class='shazam'>{$q7_decoded}</td>
-        <td class='shazam'>{$final_data['q7_cpr_inst']}</td>
+        <th><span>$q7_cpr_label</span></th>
+        <td>{$q7_decoded}</td>
+        <td>{$q7_cpr_inst}</td>
     </tr>
     <tr>
-        <th class='shazam'>$q7_breathing_label</th>
-        <td class='shazam'>{$q7_breathing}</td>
-        <td class='shazam'>{$final_data['q7_breathing_inst']}</td>
+        <th>$q7_breathing_label</th>
+        <td>{$q7_breathing}</td>
+        <td>{$q7_breathing_inst}</td>
     </tr>
     <tr>
         <!-- This will map the LABEL to the field nf_grants field -->
-        <th class='shazam'>$q7_dialyses_label</th>
-        <td class='shazam'>{$q7_dialyses}</td>
-        <td class='shazam'>{$final_data['q7_dialyses_inst']}</td>
+        <th>$q7_dialyses_label</th>
+        <td>{$q7_dialyses}</td>
+        <td>{$q7_dialyses_inst}</td>
     </tr>
     <tr>
-        <th class='shazam'>$q7_transfusions_label</th>
-        <td class='shazam'>{$q7_transfusions}</td>
-        <td class='shazam'>{$final_data['q7_transfusions_inst']}</td>
+        <th>$q7_transfusions_label</th>
+        <td>{$q7_transfusions}</td>
+        <td>{$q7_transfusions_inst}</td>
     </tr>
     <tr>
-        <th class='shazam'>$q7_food_label</th>
-        <td class='shazam'>{$q7_food}</td>
-        <td class='shazam'>{$final_data['q7_food_inst']}</td>
+        <th>$q7_food_label</th>
+        <td>{$q7_food}</td>
+        <td>{$q7_food_inst}</td>
     </tr>
 </table>
 
@@ -302,9 +283,16 @@ return $tbl1;
         $dd = REDCap::getDataDictionary($module->getProjectId(), 'array');
 
         $q8_unconscious_label = nl2br($dd['q8_unconscious']['field_label']);
+        $q8_unconscious_inst  = nl2br($final_data['q8_unconscious_inst']);
+
         $q8_confused_label = "<u>Permanently Confused:</u><ul><li>I cannot and will not be able to recognize my loved ones.</li><li>I am not able to make any health decisions</li></ul>"; //nl2br($dd['q8_confused']['field_label']);
+        $q8_confused_inst = nl2br($final_data['q8_confused_inst']);
+
         $q8_living_label = nl2br($dd['q8_living']['field_label']);
+        $q8_living_inst  = nl2br($final_data['q8_living_inst']);
+
         $q8_illness_label = nl2br($dd['q8_illness']['field_label']);
+        $q8_illness_inst  = nl2br($final_data['q8_illness_inst']);
 
         $q8_unconscious = $final_data['q8_unconscious'] == 1 ? 'Yes' : 'No';
         $q8_confused = $final_data['q8_confused'] == 1 ? 'Yes' : 'No';
@@ -325,24 +313,24 @@ $tbl1 =
         <th width="40%">Specific Instructions</th>
     </tr>    
     <tr>
-        <th class='shazam'>{$q8_unconscious_label}</th>
-        <td class='shazam'>{$q8_unconscious}</td>
-        <td class='shazam'>{$final_data['q8_unconscious_inst']}</td>
+        <th>{$q8_unconscious_label}</th>
+        <td>{$q8_unconscious}</td>
+        <td>{$q8_unconscious_inst}</td>
     </tr>
     <tr>
-        <th class='shazam'>{$q8_confused_label}</th>
-        <td class='shazam'>{$q8_confused}</td>
-        <td class='shazam'>{$final_data['q8_confused_inst']}</td>
+        <th>{$q8_confused_label}</th>
+        <td>{$q8_confused}</td>
+        <td>{$q8_confused_inst}</td>
     </tr>
     <tr>
-        <th class='shazam'>{$q8_living_label}</th>
-        <td class='shazam'>{$q8_living}</td>
-        <td class='shazam'>{$final_data['q8_living_inst']}</td>
+        <th>{$q8_living_label}</th>
+        <td>{$q8_living}</td>
+        <td>{$q8_living_inst}</td>
     </tr>
     <tr>
-        <th class='shazam'>{$q8_illness_label}</th>
-        <td class='shazam'>{$q8_illness}</td>
-        <td class='shazam'>{$final_data['q8_illness_inst']}</td>
+        <th>{$q8_illness_label}</th>
+        <td>{$q8_illness}</td>
+        <td>{$q8_illness_inst}</td>
     </tr>
 </table>
 
@@ -355,31 +343,10 @@ return $tbl1;
     public static function makeHTMLPage3($record_id, $final_data, $pdf) {
         global $module;
 
-        $dd = REDCap::getDataDictionary($module->getProjectId(), 'array');
-
+        $css = file_get_contents($module->getModulePath() . 'css/letter_project_pdf.css');
         $html = <<<EOF
 <head>
-<style>
-    .cls_section {background-color:#e1e1e1;color:#962b28;font-size:18pt; font-weight:bold}
-    .cls_question {font-weight:bold }
-    .cls_example {font-style:italic }
-    .cls_red_header {   
-    color: #962b28;
-    font-size: large;
-    }
-    .cls_response {
-      border-bottom: 1px solid black;
-      min-width: 100px;
-    }
-.cls_response_2 {
-text-decoration: underline; 
-white-space: pre;
-}
-.cls_response_4 {
-color:#1b1fff;
-}
-    .cls_grey_bkgd {background-color:#e1e1e1;font-weight:bold}
-</style>
+<style>{$css}</style>
 </head>
 <body>
 <div class="cls_section">
@@ -388,22 +355,27 @@ color:#1b1fff;
 </body>
 EOF;
 
+        $pdf->Ln(10);
         $pdf->writeHTML($html, true, false, true, false, '');
 
         $tbl2 = self::makeTableOne($final_data);
         $pdf->writeHTML($tbl2, true, false, false, false, '');
 
-        //$pdf->Cell(35,5,'<span class="cls_red_header">Please allow natural death</span>');
-        $pdf->writeHTMLCell(35, 5, '', '', '<font color=red">Please allow natural death</font>');
-
-
-        $pdf->Ln(6);
-        $tbl3 = self::makeTableNaturalDeath($final_data);
-        $pdf->writeHTML($tbl3, true, false, false, false, '');
-
 return $pdf;
     }
 
+    public static function makeHTMLPage3Part2($record_id, $final_data, $pdf) {
+        global $module;
+
+        //$pdf->Cell(35,5,'<span class="cls_red_header">Please allow natural death</span>');
+
+        $pdf->Ln(10);
+        $tbl3 = self::makeTableNaturalDeath($final_data);
+        $pdf->writeHTML($tbl3, true, false, false, false, '');
+
+        return $pdf;
+
+    }
 
     public static function makeHTMLPage4($record_id, $final_data, $pdf) {
         global $module;
@@ -513,25 +485,11 @@ return $pdf;
     public static function makeHTMLPage5($record_id, $final_data, $patient_sigfile_path, $adult_sigfile_path) {
         global $module;
 
+        $css = file_get_contents($module->getModulePath() . 'css/letter_project_pdf.css');
+
         $html = <<<EOF
 <head>
-<style>
-    .cls_section {background-color:#e1e1e1;color:#962b28;font-size:18pt; font-weight:bold}
-    .cls_question {font-weight:bold }
-    .cls_example {font-style:italic }
-    .cls_response {
-      border-bottom: 1px solid black;
-      min-width: 100px;
-    }
-.cls_response_2 {
-text-decoration: underline; 
-white-space: pre;
-}
-.cls_response_4 {
-color:#1b1fff;
-}
-.cls_grey_bkgd {background-color:#e1e1e1;font-weight:bold}
-</style>
+<style>{$css}</style>
 </head>
 <body>
 <div class="cls_section">
@@ -583,33 +541,18 @@ EOF;
 
 
     public static function makeHTMLPage6($record_id, $final_data, $witness1_sigfile_path,$witness2_sigfile_path) {
-
+        global $module;
+        $css = file_get_contents($module->getModulePath() . 'css/letter_project_pdf.css');
         $html = <<<EOF
 <head>
-<style>
-    .cls_section {background-color:#e1e1e1;color:#962b28;font-size:18pt; font-weight:bold}
-    .cls_question {font-weight:bold }
-    .cls_example {font-style:italic }
-    .cls_response {
-      border-bottom: 1px solid black;
-      min-width: 100px;
-    }
-.cls_response_2 {
-text-decoration: underline; 
-white-space: pre;
-}
-.cls_response_4 {
-color:#1b1fff;
-}
-.cls_grey_bkgd {background-color:#e1e1e1;font-weight:bold}
-</style>
+<style>{$css}</style>
 </head>
 <body>
 <div class="cls_question">Have your witnesses sign their names and write the date:</div><br>
 <div class="cls_grey_bkgd pt-lg-5"><span>Statement of Witnesses:
  </span></div>
  <br>
- <div class="">By signing, I promise that ____________________________________ signed this form.</div>
+ <div class="">By signing, I promise that {$final_data['ltr_name']} signed this form.</div>
  <div class="pt-1">
  I am 18 years of age or older and I promise that:
 <ul>
@@ -617,7 +560,7 @@ color:#1b1fff;
   <li>This person was thinking clearly and was not forced to sign this document while in my presence</li>
   <li>I am not their agent</li>
   <li>I am not providing health care for this person</li>
-  <li>I do not work for this person’s health care provider</li>
+  <li>I do not work for this person&#39;s health care provider</li>
   <li>I do not work for the facility or the institution where they live (e.g. their nursing home if applicable)</li>
   </ul>
 </div>
@@ -667,27 +610,12 @@ EOF;
     }
 
     public static function makeHTMLPage7($record_id, $final_data, $declaration_sigfile_path, $specialwitness_sigfile_path) {
-
+        global $module;
+        $css = file_get_contents($module->getModulePath() . 'css/letter_project_pdf.css');
 
       $html = <<<EOF
 <head>
-<style>
-    .cls_section {background-color:#e1e1e1;color:#962b28;font-size:18pt; font-weight:bold}
-    .cls_question {font-weight:bold }
-    .cls_example {font-style:italic }
-    .cls_response {
-      border-bottom: 1px solid black;
-      min-width: 100px;
-    }
-.cls_response_2 {
-text-decoration: underline; 
-white-space: pre;
-}
-.cls_response_4 {
-color:#1b1fff;
-}
-    .cls_grey_bkgd {background-color:#e1e1e1;font-weight:bold}
-</style>
+<style>{$css}</style>
 </head>
 <body>
 

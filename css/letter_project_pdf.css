@@ -1,0 +1,47 @@
+.popover {
+    max-width: 316px;
+}
+
+.popover .media-object {
+    width: 100%;
+    max-width: 276px;
+}
+
+.cls_section {
+    background-color: #e1e1e1;
+    color: #962b28;
+    font-size: 18pt;
+    font-weight: bold
+}
+
+.cls_question {
+    font-weight: bold
+}
+
+.cls_example {
+    font-style: italic
+}
+
+.cls_response {
+    border-bottom: 1px solid black;
+    min-width: 100px;
+}
+
+.cls_response_2 {
+    text-decoration: underline;
+    white-space: pre;
+}
+
+.cls_response_4 {
+
+}
+
+.cls_grey_bkgd {
+    background-color: #e1e1e1;
+    font-weight: bold
+}
+
+.cls_red_header {
+    color: #962b28;
+    font-size: large;
+}

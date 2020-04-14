@@ -649,6 +649,10 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
         $pdf->AddPage();
         $pdf = $pdf->makeHTMLPage3($record_id, $final_data, $pdf);
 
+        //sometimes the table is longer, so split tables into two pages
+        $pdf->AddPage();
+        $pdf = $pdf->makeHTMLPage3Part2($record_id, $final_data, $pdf);
+
         //create html for page 4
         $pdf->AddPage();
         $pdf = $pdf->makeHTMLPage4($record_id, $final_data, $pdf);
@@ -709,6 +713,16 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
             $html = '';
         }
         return $html;
+    }
+
+    public function dumpResource($name) {
+        $file =  $this->getModulePath() . $name;
+        if (file_exists($file)) {
+            $contents = file_get_contents($file);
+            echo $contents;
+        } else {
+            $this->emError("Unable to find $file");
+        }
     }
 
     /**
