@@ -252,18 +252,19 @@ function organizeResponses($record) {
     }
     $module->emDebug($event_array, "EVENT ARRAY TEST");
 
+    $re = '/^(?<prefix>q\d*)_(?<part1>\w*)_*(?<part2>\w*)/m';
 
     //iterate over the question list from the config
     foreach ($questions as $num => $question) {
 
-        $re = '/^(?<prefix>q\d*)_(?<part1>\w*)_*(?<part2>\w*)/m';
+
         preg_match_all($re, $question, $matches, PREG_SET_ORDER, 0);
 
         $prefix = $matches[0]['prefix'];
         $part1 =  $matches[0]['part1'];
         $part2 =  $matches[0]['part2'];
 
-        //$module->emLog("question is $question and   PREFIX IS ".$prefix . "part 1 is $part1 and part2 is $part2");
+        //$module->emLog("question is $question and   PREFIX IS ".$prefix . " part 1 is $part1 and part2 is $part2");
 
         foreach ($event_array as $event_name => $event_id) {
             //original and final arm have question prepended with 'q': i.e. q1, q2
@@ -292,8 +293,10 @@ function organizeResponses($record) {
                 }
                 $reorganized[$question][$event_name] = $decision_maker_array;
             } elseif (($prefix == 'q7') || ($prefix == 'q8')) {
-                $reorganized[$question][$event_name]  = array('part1' => $responses[$event_id][$proxy_prefix.$prefix . '_'. $part1],
-                     'part2' => $responses[$event_id][$prefix . '_' . $part1 . '_inst']);
+                //$module->emDebug("Event id is $event_id and proxy prefix is $proxy_prefix and prefix is $prefix",$proxy_prefix.$prefix . '_'. $part1, $responses[$event_id][[$proxy_prefix . '_' . $part1 . '_inst']]);
+                $reorganized[$question][$event_name]  = array(
+                    'part1' => $responses[$event_id][$proxy_prefix.$prefix . '_'. $part1],
+                    'part2' => $responses[$event_id][$proxy_prefix .$prefix. '_' . $part1 . '_inst']);
             } elseif ($question == 'q9') {
                 $reorganized[$question][$event_name] = $responses[$event_id][$proxy_prefix.$question];
                 $reorganized[$question][$event_name]['q9_99_other'] = $responses[$event_id][$proxy_prefix.'q9_99_other'];
