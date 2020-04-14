@@ -105,7 +105,7 @@
     },
     {
       "key": "email-survey",
-      "name": "<b>Email Survey<br>Survey where proxy emails are selected</b>",
+      "name": "<b>Email Survey<br>Survey where decision maker (proxy) emails are entered</b>",
       "required": false,
       "type": "form-list"
     },
@@ -135,7 +135,13 @@
     },
     {
       "key": "code-field",
-      "name": "<b>Code lookup field</b>",
+      "name": "<b>Code lookup field<br>Patient's email address field</b>",
+      "required": false,
+      "type": "field-list"
+    },
+    {
+      "key": "name-field",
+      "name": "<b>Name field<br>Patient's full name field</b>",
       "required": false,
       "type": "field-list"
     },

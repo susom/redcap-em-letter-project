@@ -59,8 +59,8 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
             $hash_url = $q[$record][$this->getProjectSetting('first-event')][$this->getProjectSetting('hash-url')];
             $email_code = $q[$record][$this->getProjectSetting('first-event')][$this->getProjectSetting('code-field')];
 
+            //$this->emDebug($q, $hash_url, $email_code,"REDIRECT to HASH_URL");
 
-            $this->emDebug($q, $hash_url, "HASH_URL");
             ?>
             <style>
                 #pagecontainer {
@@ -71,7 +71,6 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
                 <input type="hidden" name="code" value="<?php echo $email_code ?>"/>
                 <input type="hidden" name="login" value="1"/>
                 <input type="hidden" name="home" value="1"/>
-
             </form>
             <script>
                 $('#survey_complete').submit();
@@ -80,7 +79,6 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
                 });
             </script>
             <?php
-
         }
 
     }
@@ -99,6 +97,10 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
                     //if this is the email survey, iterate through and copy over the teh first three selected to the proxy fields.
                     //$this->emDebug("FIRST EVENT: STARTING SURVEY  SET HASH : $instrument and event: $event_id");
                     //$this->setProxyEmails($project_id, $record, $instrument);
+
+                    //new change: if decision makers are added in the reconciliation page then need to update the list of proxies
+                    $this->emDebug("FIRST EVENT: COPYING OVER SURVEY: $instrument and event: $event_id");
+                    $this->copyToFinal($project_id, $record, $instrument, $event_id);
                     break;
 
                 case $this->getProjectSetting('letter-survey'):
@@ -271,7 +273,7 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
 
         $data = array(
             REDCap::getRecordIdField() => $record,
-            'redcap_event_name' => REDCap::getEventNames(true,false, $this->getProjectSetting('first-event')),
+            'redcap_event_name' => REDCap::getEventNames(true,false, $this->getProjectSetting('final-event')),
             $email_field        => $email
             //feb update: remove the checkboxes
             //"send_".$email_field."___1" => '1'  //checkbox for email proxy field

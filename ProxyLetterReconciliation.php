@@ -26,7 +26,7 @@ if (!empty($_POST['action'])) {
     $record = $_POST['record_id'];
 
     if ($action == 'saveResponse') {
-        //save the timestamp
+        //xsave the timestamp
         $module->saveTimestamp($module->getProjectId(), $record, $module->getProjectSetting('first-event'));
 
         //persist current set of responses
@@ -42,17 +42,24 @@ if (!empty($_POST['action'])) {
         $data = array_merge($data, $_POST);
         unset($data['action']);
 
-        //$module->emDEbug($data, "DATA from12REQUEST");
+        //$module->emDEbug($_POST, $data, "DATA from12REQUEST"); exit;
 
-        //overwrite to unselect the checkbox selections
-        $q = REDCap::saveData('json', json_encode(array($data)), overwrite);
-        if (count($q['errors']) > 0) {
+        //if record id not set, bail
+        if (empty($data['record_id'])) {
             $msg = "Error saving response for ".$data['record_id']." in ". $module->getProjectSetting('final-event');
-            $module->emError($data, $q, $msg, "ERROR");
-
             $result = array("result" => "error", "message" => $msg);
         } else {
-            $result = array("result" => "success");
+
+            //overwrite to unselect the checkbox selections
+            $q = REDCap::saveData('json', json_encode(array($data)), overwrite);
+            if (count($q['errors']) > 0) {
+                $msg = "Error saving response for " . $data['record_id'] . " in " . $module->getProjectSetting('final-event');
+                $module->emError($data, $q, $msg, "ERROR");
+
+                $result = array("result" => "error", "message" => $msg);
+            } else {
+                $result = array("result" => "success");
+            }
         }
     }
 
@@ -65,8 +72,8 @@ if (!empty($_POST['action'])) {
         try {
             $q = sendEmailPDF($record, $emails);
             //todo: check send status
-            $module->emDebug("EMAILING PDF", $q);
-            $result = array("result" => "success", "message" => "Your emails were sent to these addresses: \n" . implode("\n", $emails));
+            $module->emDebug("EMAILING PDF STATUS: ". $q);
+            $result = array("result" => "success", "message" => "Your email was successfully sent to : \n" . implode("\n", $emails));
         }
         catch (Exception $e) {
             $result = array("result" => "fail", "message" => $e->getMessage());
@@ -104,7 +111,7 @@ if (!empty($_POST['action'])) {
 
         $status = $module->saveNewEmail($record, $email, $event);
             //todo: check send status
-        $module->emDebug("Saving MEW EMAIL ", $q);
+        //$module->emDebug("xSaving MEW EMAIL ", $status);
         if ($status) {
             $result = array("result" => "success", "message" => "A proxy invitation email was sent to  $email");
         } else {
@@ -274,7 +281,7 @@ function organizeResponses($record) {
             } elseif ($question == 'q5') {
                 //Question 5 is actually multiple questions that should be displayed together
 
-                $q_types = array('name_decision', 'relationship_decision', 'address_decision', 'city_decision', 'phone_decision');
+                $q_types = array('name_decision', 'relationship_decision', 'address_decision', 'city_decision','state_decision', 'zip_decision', 'phone_decision');
 
                 $decision_maker_array = array();
                 for ($j=1; $j<4; $j++) {
@@ -329,6 +336,7 @@ function renderTabDivs($record) {
     global $module, $Proj;
 
     $questions = $module->getProjectSetting('questions'); //LetterProject::$config['questions'];
+    $final_event = $module->getProjectSetting('final-event');
     $responses = organizeResponses($record);
     //$module->emDebug($responses);  exit;
     $maker_data = getDecisionMakerData($record);
@@ -342,11 +350,11 @@ function renderTabDivs($record) {
             $module->getProjectSetting('proxy-1-field'),
             $module->getProjectSetting('proxy-2-field'),
             $module->getProjectSetting('proxy-3-field')),
-        $module->getProjectSetting('first-event')
+        $module->getProjectSetting('final-event')
     );
     $results = json_decode($q,true);
     $proxies = current($results);
-
+    //$module->emDebug($results, $proxies);  exit;
     $divs = array();
 
     /**
@@ -360,7 +368,7 @@ function renderTabDivs($record) {
                         </div>
                     </div>";
      */
-    $divs[] = "<div id='" . "home" . "' class='tab-pane active in'>". getDecisionMakerPage($maker_data);  // ."</div>";
+    $divs[] = "<div id='" . "home" . "' class='tab-pane active in'>". getDecisionMakerPage($maker_data, $record);  // ."</div>";
     $divs[] = renderNavButtons(false, true, false);
     $divs[] .="</div>";
 
@@ -399,7 +407,7 @@ function renderTabDivs($record) {
 
 
 
-function getDecisionMakerPage($maker_data) {
+function getDecisionMakerPage($maker_data, $record) {
     global $module;
     //$module->emDebug($maker_data);
 
@@ -413,7 +421,7 @@ function getDecisionMakerPage($maker_data) {
         
           <div class="card mb-4 box-shadow">
           <div class="card-body">
-            <button type="button" id="btn-print-pdf" class="btn btn-lg btn-block btn-primary">View My Letter</button>
+            <button type="button" id="btn-print-pdf" data-id="'.$record.'" class="btn btn-lg btn-block btn-primary">View My Letter</button>
             <ul class="list-unstyled mt-3 mb-4">
               <li>A new tab will open to display the letter and present a menu to print to your printer</li>
             </ul>
@@ -463,60 +471,93 @@ $maker_data = getDecisionMakerData($record);
     return $str.$table;
 }
 
+/**
+ * Get the decision makers, their email (if any) and completion status
+ * Create buttons and return
+ *
+ * @param $record_id
+ * @return array
+ */
 function getDecisionMakerData($record_id) {
     global $module;
 
+    //from first-event
     $email_field            = $module->getProjectSetting('code-field');
+    $name_field             = $module->getProjectSetting('name-field');
+    $date_last_reconciled   = $module->getProjectSetting('date-last-reconciled');
+
+    //from final-event
     $proxy_1_name_field     = $module->getProjectSetting('proxy-1-name-field');
     $proxy_2_name_field     = $module->getProjectSetting('proxy-2-name-field');
     $proxy_3_name_field     = $module->getProjectSetting('proxy-3-name-field');
     $proxy_1_field          = $module->getProjectSetting('proxy-1-field');
     $proxy_2_field          = $module->getProjectSetting('proxy-2-field');
     $proxy_3_field          = $module->getProjectSetting('proxy-3-field');
-    $date_last_reconciled   = $module->getProjectSetting('date-last-reconciled');
     $patient_witness_fields = $module->getProjectSetting('witness_ready_fields');
 
-    $fields = array($email_field, //$module->getProjectSetting('code-field'),
+    $first_event_fields = array(
+        $email_field, //$module->getProjectSetting('code-field'),
+        $name_field,
+        $date_last_reconciled
+    );
+
+
+
+    $final_event_fields = array(
                     $proxy_1_field, //$module->getProjectSetting('proxy-1-field'),
                     $proxy_2_field, //$module->getProjectSetting('proxy-2-field'),
                     $proxy_3_field, //$module->getProjectSetting('proxy-3-field')
                     $proxy_1_name_field,
                     $proxy_2_name_field,
-                    $proxy_3_name_field,
-                    $date_last_reconciled
+                    $proxy_3_name_field
                 );
 
+    //these are the fields to determine whether the PDF is valid (witnessed and dated)
     foreach($patient_witness_fields as $fieldname){
-        array_push($fields, $fieldname);
+        array_push($final_event_fields, $fieldname);
     }
+
+    $params = array(
+        'project_id' => $module->getProjectId(),
+        'return_format' => 'json',
+        'events' => array($module->getProjectSetting('first-event')),
+        'fields' => $first_event_fields,
+        'records' => $record_id
+    );
+    $first_data = REDCap::getData($params);
+    $first_data = json_decode($first_data, true);
+    $first_data = current($first_data);
 
     $params = array(
             'project_id' => $module->getProjectId(),
             'return_format' => 'json',
-            'events' => array($module->getProjectSetting('first-event')),
-            'fields' => $fields,
+            'events' => array($module->getProjectSetting('final-event')),
+            'fields' => $final_event_fields,
             'records' => $record_id
     );
-    $data = REDCap::getData($params);
+    $fin_data = REDCap::getData($params);
 
     //$q = \REDCap::getData($module->getProjectId(), 'json',  array($record_id), null, $module->getProjectSetting('final-event'));
-    $final_data = json_decode($data, true);
-    //$module->emDebug($params,$module->getProjectId(),$module->getProjectSetting('final-event'), $final_data, $record_id, "FINAL DATA");
-
-    //$module->emDebug($params,$final_data); exit;
+    $final_data = json_decode($fin_data, true);
     $final_data = current($final_data);
 
-    
+    //$module->emDebug($params,$module->getProjectId(),$patient_witness_fields, $module->getProjectSetting('final-event'), $final_data, $first_data, $record_id, "FINAL DATA");
 
-    $send_data[$email_field]['email']   = $final_data[$email_field];
+    //$module->emDebug($params,$final_data); exit;
+
+
+    //enter the emails for patient and proxies
+    $send_data[$email_field]['email']   = $first_data[$email_field];
     $send_data[$proxy_1_field]['email'] = $final_data[$proxy_1_field];
     $send_data[$proxy_2_field]['email'] = $final_data[$proxy_2_field];
     $send_data[$proxy_3_field]['email'] = $final_data[$proxy_3_field];
 
+    //enter the names for patient and proxies
+    $send_data[$email_field]['name']  = $first_data[$name_field];
     $send_data[$proxy_1_field]['name']  = $final_data[$proxy_1_name_field];
     $send_data[$proxy_2_field]['name']  = $final_data[$proxy_2_name_field];
     $send_data[$proxy_3_field]['name']  = $final_data[$proxy_3_name_field];
-    $send_data[$proxy_3_field]['name']  = $final_data[$proxy_3_name_field];
+
 
     //now get the completion status
     $main_status    = getCompletionStatus($module->getProjectSetting('first-event'), $record_id);
@@ -534,7 +575,7 @@ function getDecisionMakerData($record_id) {
     $send_data[$proxy_2_field]['status']    = $event_2_status[$proxy_completion_field];
     $send_data[$proxy_3_field]['status']    = $event_3_status[$proxy_completion_field];
     
-    $send_data[$email_field]['timestamp']   = $main_status[$timestamp_field];
+    $send_data[$email_field]['timestamp']   = $first_data[$timestamp_field];
     $send_data[$proxy_1_field]['timestamp'] = $event_1_status[$proxy_timestamp_field];
     $send_data[$proxy_2_field]['timestamp'] = $event_2_status[$proxy_timestamp_field];
     $send_data[$proxy_3_field]['timestamp'] = $event_3_status[$proxy_timestamp_field];
@@ -551,10 +592,10 @@ function getDecisionMakerData($record_id) {
     //rearrange the data by proxy event
     $return_data = array();
     foreach ($send_data as $event => $row) {
-        $return_data[] = getSurveyStatus($record_id, $row, $final_data[$date_last_reconciled], $event);
+        $return_data[] = getSurveyStatus($record_id, $row, $first_data[$date_last_reconciled], $event);
     }
 
-    //$module->emDebug($return_data); exit;
+    //$module->emDebug($send_data, $return_data);
     return $return_data;
 
 }
@@ -579,6 +620,12 @@ function getSurveyStatus($record_id, $row, $last_timestamp_str, $event) {
     $status = $row['status'];
     $name   = $row['name'];
 
+    //if name not entered, there was no decision maker.  return null
+    if (empty($name)) {
+        $module->emDebug("No proxy for $event");
+        return null;
+    }
+
     // signature (boolean) will control send pdf button
     $signature  = $row["signature"];
     $disabled   = empty($signature) ? "disabled" : "";
@@ -592,6 +639,7 @@ function getSurveyStatus($record_id, $row, $last_timestamp_str, $event) {
     //default for email
 
     if ($status == 2) {
+        //survey completed
         if ($ts > $last_ts) {
             //finished survey was completed before last reconciled
             $module->emDebug('Pending' . $ts->getTimestamp() . ' is less than '. $last_ts->getTimestamp());
@@ -604,13 +652,14 @@ function getSurveyStatus($record_id, $row, $last_timestamp_str, $event) {
         }
         $button_html = '<button id="'. $email .'" class="btn btn-sm btn-block btn-primary send-pdf " '.$disabled.' data-id="'. $record_id .'" data-email="'. $email .'" name="send" >Send PDF <i style="background:url('.$module->getUrl('images/mail_pdf.png',true,true ).') no-repeat; background-size:contain;"></i></button>';
     } else {
+        //survey not yet completed
         //if there is an email, then waiting
         if (!empty($email)) {
             $completion_status = 'Waiting for response';
             $button_html = '<button id="'. $email .'" class="btn btn-sm btn-block btn-primary send-pdf " '.$disabled.'  data-id="'. $record_id .'" data-email="'. $email .'" name="send">Send PDF <i style="background:url('.$module->getUrl('images/mail_pdf.png',true,true ).') no-repeat; background-size:contain;"></i></button>';
         } else {
-            //hijack naem + $button_html for custom display
-            $name           = "Invite a new proxy:";
+            //hijack name + $button_html for custom display
+            //$name           = "Invite a new proxy:";
             $button_html    = 'invite_row';
 
             //create a text field for
@@ -783,15 +832,19 @@ function formatPrintAnswers($question_num, $field_type, $response) {
                     $q .= '<div class="ttable-cell">Name:</div>';
                     $q .= '<div class="ttable-cell">Relationship:</div>';
                     $q .= '<div class="ttable-cell">Address:</div>';
-                    $q .= '<div class="ttable-cell">City, State, Zip:</div>';
-                    $q .= '<div class="ttable-cell">Phone:</div>';
+                    $q .= '<div class="ttable-cell">City:</div>';
+                    $q .= '<div class="ttable-cell">State:</div>';
+                    $q .= '<div class="ttable-cell">Zip:</div>';
+                $q .= '<div class="ttable-cell">Phone:</div>';
                 $q .= '</div>';
                 $q .= '<div class="ttable-row">';
                 $q .= '<div class="ttable-cell proxy_num">Proxy 1</div>';
                 $q .= '<div class="ttable-cell"><b>Name:</b> '.$response[1]['name_decision'].'</div>';
                 $q .= '<div class="ttable-cell"><b>Relationship:</b> '.$response[1]['relationship_decision'].'</div>';
                 $q .= '<div class="ttable-cell"><b>Address:</b> '.$response[1]['address_decision'].'</div>';
-                $q .= '<div class="ttable-cell"><b>City, State, Zip:</b> '.$response[1]['city_decision'].'</div>';
+                $q .= '<div class="ttable-cell"><b>City:</b> '.$response[1]['city_decision'].'</div>';
+                $q .= '<div class="ttable-cell"><b>State:</b> '.$response[1]['state_decision'].'</div>';
+                $q .= '<div class="ttable-cell"><b>Zip:</b> '.$response[1]['zip_decision'].'</div>';
                 $q .= '<div class="ttable-cell"><b>Phone:</b> '.$response[1]['phone_decision'].'</div>';
                 $q .= '</div>';
                 $q .= '<div class="ttable-row">';
@@ -799,7 +852,9 @@ function formatPrintAnswers($question_num, $field_type, $response) {
                 $q .= '<div class="ttable-cell"><b>Name:</b> '.$response[2]['name_decision'].'</div>';
                 $q .= '<div class="ttable-cell"><b>Relationship:</b> '.$response[2]['relationship_decision'].'</div>';
                 $q .= '<div class="ttable-cell"><b>Address:</b> '.$response[2]['address_decision'].'</div>';
-                $q .= '<div class="ttable-cell"><b>City, State, Zip:</b> '.$response[2]['city_decision'].'</div>';
+                $q .= '<div class="ttable-cell"><b>City:</b> '.$response[2]['city_decision'].'</div>';
+                $q .= '<div class="ttable-cell"><b>State:</b> '.$response[2]['state_decision'].'</div>';
+                $q .= '<div class="ttable-cell"><b>Zip:</b> '.$response[2]['zip_decision'].'</div>';
                 $q .= '<div class="ttable-cell"><b>Phone:</b> '.$response[2]['phone_decision'].'</div>';
                 $q .= '</div>';
                 $q .= '<div class="ttable-row">';
@@ -807,7 +862,9 @@ function formatPrintAnswers($question_num, $field_type, $response) {
                 $q .= '<div class="ttable-cell"><b>Name:</b> '.$response[3]['name_decision'].'</div>';
                 $q .= '<div class="ttable-cell"><b>Relationship:</b> '.$response[3]['relationship_decision'].'</div>';
                 $q .= '<div class="ttable-cell"><b>Address:</b> '.$response[3]['address_decision'].'</div>';
-                $q .= '<div class="ttable-cell"><b>City, State, Zip:</b> '.$response[3]['city_decision'].'</div>';
+                $q .= '<div class="ttable-cell"><b>City:</b> '.$response[3]['city_decision'].'</div>';
+                $q .= '<div class="ttable-cell"><b>State:</b> '.$response[3]['state_decision'].'</div>';
+                $q .= '<div class="ttable-cell"><b>Zip:</b> '.$response[3]['zip_decision'].'</div>';
                 $q .= '<div class="ttable-cell"><b>Phone:</b> '.$response[3]['phone_decision'].'</div>';
                 $q .= '</div>';
                 $q .= '</div>';
@@ -1012,7 +1069,10 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
                     $q .= '<th colspan="1">Name:</th>';
                     $q .= '<th colspan="1">Relationship:</th>';
                     $q .= '<th colspan="1">Address:</th>';
-                    $q .= '<th colspan="1">City, State, Zip:</th>';
+                    $q .= '<th colspan="1">City:</th>';
+                    $q .= '<th colspan="1">State:</th>';
+                    $q .= '<th colspan="1">Zip:</th>';
+
                     $q .= '<th colspan="1">Phone:</th>';
                     $q .= '</tr>';
                     $q .= '</thead>';
@@ -1022,6 +1082,8 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
                     $q .= '<td><input class="tcell" id="'.$final_label.'_relationship_decision_1'.'" name="'.$final_label.'_relationship_decision_1'.'"  value="'.$response[1]['relationship_decision'].'" type="text"></td>';
                     $q .= '<td><input class="tcell" id="'.$final_label.'_address_decision_1'.'" name="'.$final_label.'_address_decision_1'.'"  value="'.$response[1]['address_decision'].'" type="text"></td>';
                     $q .= '<td><input class="tcell" id="'.$final_label.'_city_decision_1'.'" name="'.$final_label.'_city_decision_1'.'"  value="'.$response[1]['city_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" id="'.$final_label.'_state_decision_1'.'" name="'.$final_label.'_state_decision_1'.'"  value="'.$response[1]['state_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" id="'.$final_label.'_zip_decision_1'.'" name="'.$final_label.'_zip_decision_1'.'"  value="'.$response[1]['zip_decision'].'" type="text"></td>';
                     $q .= '<td><input class="tcell" id="'.$final_label.'_phone_decision_1'.'" name="'.$final_label.'_phone_decision_1'.'"  value="'.$response[1]['phone_decision'].'" type="text"></td>';
                     $q .= '</tr>';
                     $q .= '<tr>';
@@ -1030,6 +1092,8 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
                     $q .= '<td><input class="tcell" id="'.$final_label.'_relationship_decision_2'.'" name="'.$final_label.'_relationship_decision_2'.'"  value="'.$response[2]['relationship_decision'].'" type="text"></td>';
                     $q .= '<td><input class="tcell" id="'.$final_label.'_address_decision_2'.'" name="'.$final_label.'_address_decision_2'.'"  value="'.$response[2]['address_decision'].'" type="text"></td>';
                     $q .= '<td><input class="tcell" id="'.$final_label.'_city_decision_2'.'" name="'.$final_label.'_city_decision_2'.'"  value="'.$response[2]['city_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" id="'.$final_label.'_state_decision_2'.'" name="'.$final_label.'_state_decision_2'.'"  value="'.$response[2]['state_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" id="'.$final_label.'_zip_decision_2'.'" name="'.$final_label.'_zip_decision_2'.'"  value="'.$response[2]['zip_decision'].'" type="text"></td>';
                     $q .= '<td><input class="tcell" id="'.$final_label.'_phone_decision_2'.'" name="'.$final_label.'_phone_decision_2'.'"  value="'.$response[2]['phone_decision'].'" type="text"></td>';
                     $q .= '</tr>';
                     $q .= '<tr>';
@@ -1038,6 +1102,8 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
                     $q .= '<td><input class="tcell" id="'.$final_label.'_relationship_decision_3'.'" name="'.$final_label.'_relationship_decision_3'.'"  value="'.$response[3]['relationship_decision'].'" type="text"></td>';
                     $q .= '<td><input class="tcell" id="'.$final_label.'_address_decision_3'.'" name="'.$final_label.'_address_decision_3'.'"  value="'.$response[3]['address_decision'].'" type="text"></td>';
                     $q .= '<td><input class="tcell" id="'.$final_label.'_city_decision_3'.'" name="'.$final_label.'_city_decision_3'.'"  value="'.$response[3]['city_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" id="'.$final_label.'_state_decision_3'.'" name="'.$final_label.'_state_decision_3'.'"  value="'.$response[3]['state_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" id="'.$final_label.'_zip_decision_3'.'" name="'.$final_label.'_zip_decision_3'.'"  value="'.$response[3]['zip_decision'].'" type="text"></td>';
                     $q .= '<td><input class="tcell" id="'.$final_label.'_phone_decision_3'.'" name="'.$final_label.'_phone_decision_3'.'"  value="'.$response[3]['phone_decision'].'" type="text"></td>';
                     $q .= '</tr>';
                     $q .= '</table>';
@@ -1055,7 +1121,9 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
                     $q .= '<th colspan="1">Name:</th>';
                     $q .= '<th colspan="1">Relationship:</th>';
                     $q .= '<th colspan="1">Address:</th>';
-                    $q .= '<th colspan="1">City, State, Zip:</th>';
+                    $q .= '<th colspan="1">City:</th>';
+                    $q .= '<th colspan="1">State:</th>';
+                    $q .= '<th colspan="1">Zip:</th>';
                     $q .= '<th colspan="1">Phone:</th>';
                     $q .= '</tr>';
                     $q .= '</thead>';
@@ -1065,6 +1133,8 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
                     $q .= '<td><input class="tcell" readonly id="'.$q_label.'_relationship_decision_1'.'" name="'.$q_label.'_relationship_decision_1'.'"  value="'.$response[1]['relationship_decision'].'" type="text"></td>';
                     $q .= '<td><input class="tcell" readonly id="'.$q_label.'_address_decision_1'.'" name="'.$q_label.'_address_decision_1'.'"  value="'.$response[1]['address_decision'].'" type="text"></td>';
                     $q .= '<td><input class="tcell" readonly id="'.$q_label.'_city_decision_1'.'" name="'.$q_label.'_city_decision_1'.'"  value="'.$response[1]['city_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" readonly id="'.$q_label.'_state_decision_1'.'" name="'.$q_label.'_state_decision_1'.'"  value="'.$response[1]['state_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" readonly id="'.$q_label.'_zip_decision_1'.'" name="'.$q_label.'_zip_decision_1'.'"  value="'.$response[1]['zip_decision'].'" type="text"></td>';
                     $q .= '<td><input class="tcell" readonly id="'.$q_label.'_phone_decision_1'.'" name="'.$q_label.'_phone_decision_1'.'"  value="'.$response[1]['phone_decision'].'" type="text"></td>';
                     $q .= '</tr>';
                     $q .= '<tr>';
@@ -1073,6 +1143,8 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
                     $q .= '<td><input class="tcell" id="'.$q_label.'_relationship_decision_2'.'" name="'.$q_label.'_relationship_decision_2'.'"  value="'.$response[2]['relationship_decision'].'" type="text"></td>';
                     $q .= '<td><input class="tcell" id="'.$q_label.'_address_decision_2'.'" name="'.$q_label.'_address_decision_2'.'"  value="'.$response[2]['address_decision'].'" type="text"></td>';
                     $q .= '<td><input class="tcell" id="'.$q_label.'_city_decision_2'.'" name="'.$q_label.'_city_decision_2'.'"  value="'.$response[2]['city_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" readonly id="'.$q_label.'_state_decision_2'.'" name="'.$q_label.'_state_decision_2'.'"  value="'.$response[1]['state_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" readonly id="'.$q_label.'_zip_decision_2'.'" name="'.$q_label.'_zip_decision_2'.'"  value="'.$response[1]['zip_decision'].'" type="text"></td>';
                     $q .= '<td><input class="tcell" id="'.$q_label.'_phone_decision_2'.'" name="'.$q_label.'_phone_decision_2'.'"  value="'.$response[2]['phone_decision'].'" type="text"></td>';
                     $q .= '</tr>';
                     $q .= '<tr>';
@@ -1081,6 +1153,8 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
                     $q .= '<td><input class="tcell" id="'.$q_label.'_relationship_decision_3'.'" name="'.$q_label.'_relationship_decision_3'.'"  value="'.$response[3]['relationship_decision'].'" type="text"></td>';
                     $q .= '<td><input class="tcell" id="'.$q_label.'_address_decision_3'.'" name="'.$q_label.'_address_decision_3'.'"  value="'.$response[3]['address_decision'].'" type="text"></td>';
                     $q .= '<td><input class="tcell" id="'.$q_label.'_city_decision_3'.'" name="'.$q_label.'_city_decision_3'.'"  value="'.$response[3]['city_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" readonly id="'.$q_label.'_state_decision_3'.'" name="'.$q_label.'_state_decision_3'.'"  value="'.$response[1]['state_decision'].'" type="text"></td>';
+                    $q .= '<td><input class="tcell" readonly id="'.$q_label.'_zip_decision_3'.'" name="'.$q_label.'_zip_decision_3'.'"  value="'.$response[1]['zip_decision'].'" type="text"></td>';
                     $q .= '<td><input class="tcell" id="'.$q_label.'_phone_decision_3'.'" name="'.$q_label.'_phone_decision_3'.'"  value="'.$response[3]['phone_decision'].'" type="text"></td>';
                     $q .= '</tr>';
                     $q .= '</table>';
@@ -1097,8 +1171,9 @@ function formatInputFields($question_num, $proxy_num, $field_type, $response, $e
 
             $i=1;
             foreach ($coded as $code => $proxy_num) {
+
                 $q .= "<label>";
-                    $q .= "<input name=" . $q_label . "_" . $i . " $disabled type=\"checkbox\"";
+                    $q .= "<input name=" . $q_label . "_" . $code . " $disabled type=\"checkbox\"";
                     if ($response[$code]) {
                         $q .= " checked = checked";
                     }
