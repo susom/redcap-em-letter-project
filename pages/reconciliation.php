@@ -16,10 +16,10 @@ namespace Stanford\LetterProject;
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="<?php print $module->getUrl("images/stanford_favicon.ico",false,true) ?>">
+    <link rel="icon" type="image/png" href="<?php print $module->getUrl("images/stanford_favicon.ico",true,true) ?>">
 
     <!-- Local CSS/JS -->
-    <link rel="stylesheet" type="text/css" media="screen,print" href="<?php print $module->getUrl("css/letter_project.css",false,true) ?>"/>
+    <link rel="stylesheet" type="text/css" media="screen,print" href="<?php print $module->getUrl("css/letter_project.css",true,true) ?>"/>
     <style>
         /* Added this here to import image url */
         div.logo {
@@ -37,7 +37,7 @@ namespace Stanford\LetterProject;
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" crossorigin="anonymous"></script>
 
-    <script src="<?php echo $module->getUrl("js/letter_project.js") ?>"></script>
+    <script src="<?php echo $module->getUrl("js/letter_project.js", true, true) ?>"></script>
 
 </head>
 <body>

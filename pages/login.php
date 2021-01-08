@@ -14,7 +14,7 @@ namespace Stanford\LetterProject;
     <link rel="stylesheet" type="text/css" media="screen" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="<?php print $module->getUrl("images/stanford_favicon.ico",false,true) ?>">
+    <link rel="icon" type="image/png" href="<?php print $module->getUrl("images/stanford_favicon.ico",true,true) ?>">
 
     <!-- Add local css and js for module -->
     <link href="<?php print $module->getUrl('css/letter_project.css', false, true) ?>" rel="stylesheet" type="text/css" media="screen,print"/>
