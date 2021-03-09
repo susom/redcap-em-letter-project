@@ -250,7 +250,6 @@ function organizeResponses($record) {
         $event_name = \REDCap::getEventNames(true, false, $event_id);
         $event_array[$event_name] = $event_id; //REDCap::getEventIdFromUniqueEvent($event);
     }
-    $module->emDebug($event_array, "EVENT ARRAY TEST");
 
     $re = '/^(?<prefix>q\d*)_(?<part1>\w*)_*(?<part2>\w*)/m';
 
