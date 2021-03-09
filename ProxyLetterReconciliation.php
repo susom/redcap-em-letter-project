@@ -141,7 +141,7 @@ if (!empty($_POST['action'])) {
 while (isset($_POST['login'])) {
     $email_code = $_GET['e'];
     $code = $_POST['code'];
-    $print_age = $_POST['print_page'];
+    $print_page = $_POST['print_page'];
 
     if (empty($email_code)) {
         $_SESSION['msg'] = "Please use the link from your email.";
