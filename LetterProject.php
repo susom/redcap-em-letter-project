@@ -253,21 +253,25 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
      */
     public function saveNewEmail($record, $email, $email_event)
     {
-        $this->emDebug($record, $email, $email_event);
+        $this->emDebug("Record $record: Sending email to $email in event $email_event");
         //figure out which event to save the new email
         $event = '';
+        $proxy_num = '';
         switch ($email_event) {
             case 'email_proxy_1':
                 $event = $this->getProjectSetting('proxy-1-event');
                 $email_field = $this->getProjectSetting('proxy-1-field');
+                $proxy_num = 1;
                 break;
             case 'email_proxy_2':
                 $event = $this->getProjectSetting('proxy-2-event');
                 $email_field = $this->getProjectSetting('proxy-2-field');
+                $proxy_num = 2;
                 break;
             case 'email_proxy_3':
                 $event = $this->getProjectSetting('proxy-3-event');
                 $email_field = $this->getProjectSetting('proxy-3-field');
+                $proxy_num = 3;
                 break;
         }
 
@@ -291,6 +295,13 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
             );
 
             return false;
+        } else {
+            REDCap::logEvent(
+                "Proxy email sent. ",  //action
+                "Email was sent to proxy $proxy_num : $email" ,
+                NULL, //sql optional
+                $record //record optional
+            );
         }
 
         return true;

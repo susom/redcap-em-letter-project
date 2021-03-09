@@ -1,6 +1,8 @@
 <?php
 namespace Stanford\LetterProject;
 /** @var \Stanford\LetterProject\LetterProject $module */
+
+$image_url = $module->getUrl('images/stanford-healthcre.png',true,true );
 ?>
 <!DOCTYPE html>
 <html lan="en">

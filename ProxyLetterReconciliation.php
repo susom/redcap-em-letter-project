@@ -18,7 +18,7 @@ session_start();
 //$name = "Zaphod Beeblebrox ";
 //$doctor_name = 'Doctor Who';
 
-$image_url = $module->getUrl('images/stanford-healthcre.png',true,true );
+
 
 // HANDLE AJAX POST REQUESTS
 if (!empty($_POST['action'])) {
@@ -343,18 +343,24 @@ function renderTabDivs($record) {
     //$module->emDebug($responses);  exit;
     $maker_data = getDecisionMakerData($record);
 
-    $q = REDCap::getData(
-        'json',
-        $record,
-        array(
-            REDCap::getRecordIdField(),
-            $module->getProjectSetting('code-field'),
-            $module->getProjectSetting('proxy-1-field'),
-            $module->getProjectSetting('proxy-2-field'),
-            $module->getProjectSetting('proxy-3-field')),
-        $module->getProjectSetting('final-event')
+    $fields	=  array(
+        REDCap::getRecordIdField(),
+        $module->getProjectSetting('code-field'),
+        $module->getProjectSetting('proxy-1-field'),
+        $module->getProjectSetting('proxy-2-field'),
+        $module->getProjectSetting('proxy-3-field')
     );
-    $results = json_decode($q,true);
+
+    $params	= array(
+        'project_id'	=> $Proj->project_id,
+        'return_format' => 'json',
+        'fields'        => $fields,
+        'events'        => $module->getProjectSetting('final-event')
+    );
+
+    $q 			= \REDCap::getData($params);
+    $results 	= json_decode($q, true);
+
     $proxies = current($results);
     //$module->emDebug($results, $proxies);  exit;
     $divs = array();
@@ -633,7 +639,13 @@ function getSurveyStatus($record_id, $row, $last_timestamp_str, $event) {
     $disabled   = empty($signature) ? "disabled" : "";
 
     $ts_string  = $row['timestamp'];
-    $ts         = new DateTime($ts_string);
+
+    //check if the ts_string is parsable to a date.  if they do save and return, the timestamp is set to "[not completed]"
+    if (strtotime($ts_string)) {
+        $ts = new DateTime($ts_string);
+    } else {
+        $ts = new DateTime();
+    }
     $last_ts    = new DateTime($last_timestamp_str);
 
     //$module->emDebug($ts, $last_ts);
@@ -644,12 +656,12 @@ function getSurveyStatus($record_id, $row, $last_timestamp_str, $event) {
         //survey completed
         if ($ts > $last_ts) {
             //finished survey was completed before last reconciled
-            $module->emDebug('Pending' . $ts->getTimestamp() . ' is less than '. $last_ts->getTimestamp());
+            $module->emDebug('Pending Review: Finished survey was after last reconcile time: ' . $ts->getTimestamp() . ' is less than '. $last_ts->getTimestamp());
             $completion_status = 'Pending Review';
 
         } else {
 
-            $module->emDebug('COMPLETED TS : ' . $ts->getTimestamp() . ' is greater than '. $last_ts->getTimestamp());
+            $module->emDebug('COMPLETED Reviiew: Reconciled timestamp is greater than survey completion: ' . $ts->getTimestamp() . ' is greater than '. $last_ts->getTimestamp());
             $completion_status = 'Completed';
         }
         $button_html = '<button id="'. $email .'" class="btn btn-sm btn-block btn-primary send-pdf " '.$disabled.' data-id="'. $record_id .'" data-email="'. $email .'" name="send" >Send PDF <i style="background:url('.$module->getUrl('images/mail_pdf.png',true,true ).') no-repeat; background-size:contain;"></i></button>';
