@@ -545,38 +545,78 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
         return true;
     }
 
+    /**
+     *
+     * @param $code
+     * @return false|mixed
+     */
     public function lookupByCode($code)
     {
         $event_id = $this->getProjectSetting('first-event');
-        $event = REDCap::getEventNames(true, false, $event_id);
         $code_field = $this->getProjectSetting('code-field');
 
-        $filter = "[" . $event . "][" . $code_field . "] = '$code'";
-        $get_fields = array(REDCap::getRecordIdField());
-        $this->emDebug( "FILTER:".$filter);
+        //2021 Apr 17 : replace getData with SQL because getData is case sensitive
+//        $event = REDCap::getEventNames(true, false, $event_id);
+//        $filter = "[" . $event . "][" . $code_field . "] = '$code'";
+//        $get_fields = array(REDCap::getRecordIdField());
 
-        //passing in project_id causes getData to fail
-        $q = REDCap::getData('json', NULL, $get_fields, $event,
-            NULL, FALSE, FALSE, FALSE, $filter);
-        $results = json_decode($q, true);
+//        $this->emDebug( "FILTER:xx $event_id ".$filter);
 
-        if (count($results) > 1) {
-            // There is a duplicate record in the table
-            $participants = array();
-            foreach ($results as $result) $participants[] = $result[REDCap::getRecordIdField()];
-            $msg = "Warning: more than 1 participant is using the login code $code: " . implode(", ", $participants) . "\n" .
-                "When they log in they are using the 'first' record so you should be able to delete the second instance after confirming there is no assessment data";
-            REDCap::email($this->getProjectSetting('project-admin-email'), $this->getProjectSetting('project-from-email'), $this->getProjectSetting('project-title'), $msg);
+//        //passing in project_id causes getData to fail
+//        $q = REDCap::getData('json', NULL, $get_fields, $event,
+//                             NULL, FALSE, FALSE, FALSE, $filter);
+//        $results = json_decode($q, true);
+
+        //filter fails on case sensitive search: foo vs Foo
+        try {
+            $sql = sprintf("
+                select record from redcap_data 
+                where project_id = %d
+                and event_id = %d
+                and field_name = '%s'
+                and value = '%s'",
+            $this->getProjectId(),
+            $event_id,
+            $code_field,
+            $code
+            );
+
+            $q = db_query($sql);
+            //$this->emDebug($sql, $q, db_num_rows($q));
+
+            // If the code does not match any, return false
+            if (db_num_rows($q) < 1) {
+                return false;
+            }
+
+            //found more than 1
+            if (db_num_rows($q)> 1) {
+                // There is a duplicate record in the table
+                $participants = array();
+
+                //make array of all found records
+                while ($row = db_fetch_assoc($q)) {
+                    $participants[] = $row['record'];
+                }
+
+                $msg = "Warning: more than 1 participant is using the login code $code: " . implode(", ", $participants) . "\n" .
+                    "When they log in they are using the 'first' record, ".min($participants) .", so you should be able to delete the second instance after confirming there is no assessment data";
+                REDCap::email($this->getProjectSetting('project-admin-email'), $this->getProjectSetting('project-from-email'), $this->getProjectSetting('project-title'), $msg);
+                $this->emDebug("Found multiple records with email $code : " .  implode(", ", $participants));
+                $this->emDebug("returning min record: " . min($participants));
+                return min($participants);
+            } else {
+                //found only 1
+                $found = db_fetch_assoc($q);
+                $this->emDebug("Found only 1 record with email $code: ". $found['record']);
+                return $found['record'];
+            }
+
+        } catch (\Exception $e) {
+            $this->emError("Found Exception", $e->getMessage());
+            return null;
         }
 
-        // If the code does not match return false
-        if (count($results) == 0) {
-            return false;
-        }
-
-        // Take the first match (in case there are more than 1)
-        $result = $results[0];
-        return $result[REDCap::getRecordIdField()];
     }
 
 
