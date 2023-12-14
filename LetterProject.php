@@ -137,6 +137,7 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
      */
     public function copyOverSigFields($project_id, $record, $file_fields, $event_id) {
         $final_event = $this->getProjectSetting('final-event');
+        $data_table = method_exists('\REDCap', 'getDataTable') ? \REDCap::getDataTable($project_id) : "redcap_data";
 
         $sig_status = true;
 
@@ -158,8 +159,9 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
             if (!empty($doc_id)) {
 
                 //check if already exists;
-                $check_sql = sprintf("select count(*) from redcap_data where project_id = '%s' and " .
+                $check_sql = sprintf("select count(*) from %s where project_id = '%s' and " .
                     "event_id = '%s' and record = '%s' and field_name = '%s'",
+                    prep($data_table),
                     prep($project_id),
                     prep($final_event),
                     prep($record),
@@ -184,7 +186,7 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
         $value_str = implode(',', $values);
 
         if (!empty($values)) {
-            $insert_sql = "INSERT INTO redcap_data (project_id, event_id,record,field_name,value) VALUES  " . $value_str . ';';
+            $insert_sql = "INSERT INTO $data_table (project_id, event_id,record,field_name,value) VALUES  " . $value_str . ';';
             $sig_status = db_query($insert_sql);
         }
 
@@ -554,6 +556,7 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
     {
         $event_id = $this->getProjectSetting('first-event');
         $code_field = $this->getProjectSetting('code-field');
+        $data_table = method_exists('\REDCap', 'getDataTable') ? \REDCap::getDataTable($this->getProjectId()) : "redcap_data";
 
         //2021 Apr 17 : replace getData with SQL because getData is case sensitive
 //        $event = REDCap::getEventNames(true, false, $event_id);
@@ -570,11 +573,12 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
         //filter fails on case sensitive search: foo vs Foo
         try {
             $sql = sprintf("
-                select record from redcap_data 
+                select record from %s 
                 where project_id = %d
                 and event_id = %d
                 and field_name = '%s'
                 and value = '%s'",
+            $data_table,
             $this->getProjectId(),
             $event_id,
             $code_field,
