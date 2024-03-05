@@ -573,12 +573,11 @@ class LetterProject extends \ExternalModules\AbstractExternalModule
         //filter fails on case sensitive search: foo vs Foo
         try {
             $sql = sprintf("
-                select record from %s 
+                select record from $data_table
                 where project_id = %d
                 and event_id = %d
                 and field_name = '%s'
                 and value = '%s'",
-            $data_table,
             $this->getProjectId(),
             $event_id,
             $code_field,
