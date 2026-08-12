@@ -11,11 +11,7 @@
     }
   ],
   "framework-version": 15,
-  "permissions": [
-    "hook_save_record",
-    "redcap_survey_page_top",
-    "hook_survey_complete"
-  ],
+
 
   "description": "Reconciliation of proxy letters for the Stanford Letter Project",
 
